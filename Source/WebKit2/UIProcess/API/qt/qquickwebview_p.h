@@ -262,6 +262,7 @@ class QWEBKIT_EXPORT QQuickWebViewExperimental : public QObject {
     Q_PROPERTY(int preferredMinimumContentsWidth WRITE setPreferredMinimumContentsWidth READ preferredMinimumContentsWidth NOTIFY preferredMinimumContentsWidthChanged)
     Q_PROPERTY(int deviceWidth WRITE setDeviceWidth READ deviceWidth NOTIFY deviceWidthChanged)
     Q_PROPERTY(int deviceHeight WRITE setDeviceHeight READ deviceHeight NOTIFY deviceHeightChanged)
+    Q_PROPERTY(int customLayoutWidth WRITE setCustomLayoutWidth READ customLayoutWidth NOTIFY customLayoutWidthChanged)
 
     Q_PROPERTY(QWebNavigationHistory* navigationHistory READ navigationHistory CONSTANT FINAL)
 
@@ -359,6 +360,9 @@ public:
     int preferredMinimumContentsWidth() const;
     void setPreferredMinimumContentsWidth(int);
 
+    int customLayoutWidth() const;
+    void setCustomLayoutWidth(int);
+
     // C++ only
     bool renderToOffscreenBuffer() const;
     void setRenderToOffscreenBuffer(bool enable);
@@ -370,6 +374,8 @@ public:
     void setWebChannel(QQmlWebChannel* channel);
     void postQtWebChannelTransportMessage(const QByteArray& message);
 #endif
+
+    bool firstFrameRendered() const;
 
 public Q_SLOTS:
     void goBackTo(int index);
@@ -401,7 +407,9 @@ Q_SIGNALS:
     void userScriptsChanged();
     void userStyleSheetsChanged();
     void preferredMinimumContentsWidthChanged();
+    void customLayoutWidthChanged();
     void remoteInspectorUrlChanged();
+    void autoCorrectChanged();
     void textFound(int matchCount);
 
     void processDidCrash();
