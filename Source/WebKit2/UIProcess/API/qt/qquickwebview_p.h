@@ -263,6 +263,8 @@ class QWEBKIT_EXPORT QQuickWebViewExperimental : public QObject {
     Q_PROPERTY(int deviceWidth WRITE setDeviceWidth READ deviceWidth NOTIFY deviceWidthChanged)
     Q_PROPERTY(int deviceHeight WRITE setDeviceHeight READ deviceHeight NOTIFY deviceHeightChanged)
 
+    Q_PROPERTY(bool autoCorrect WRITE setAutoCorrect READ autoCorrect NOTIFY autoCorrectChanged)
+
     Q_PROPERTY(QWebNavigationHistory* navigationHistory READ navigationHistory CONSTANT FINAL)
 
     Q_PROPERTY(QQmlComponent* alertDialog READ alertDialog WRITE setAlertDialog NOTIFY alertDialogChanged)
@@ -359,6 +361,9 @@ public:
     int preferredMinimumContentsWidth() const;
     void setPreferredMinimumContentsWidth(int);
 
+    bool autoCorrect() const;
+    void setAutoCorrect(bool autoCorrect);
+
     // C++ only
     bool renderToOffscreenBuffer() const;
     void setRenderToOffscreenBuffer(bool enable);
@@ -402,6 +407,8 @@ Q_SIGNALS:
     void userStyleSheetsChanged();
     void preferredMinimumContentsWidthChanged();
     void remoteInspectorUrlChanged();
+    void autoCorrectChanged();
+
     void textFound(int matchCount);
 
     void processDidCrash();
