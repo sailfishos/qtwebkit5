@@ -24,6 +24,7 @@
 #include "qwebpreferences_p_p.h"
 #include <WKPageGroup.h>
 #include <WKPreferences.h>
+#include <WKPreferencesPrivate.h>
 #include <WKRetainPtr.h>
 #include <WKStringQt.h>
 
@@ -79,6 +80,8 @@ bool QWebPreferencesPrivate::testAttribute(QWebPreferencesPrivate::WebAttribute 
         return WKPreferencesGetCaretBrowsingEnabled(preferencesRef);
     case NotificationsEnabled:
         return WKPreferencesGetNotificationsEnabled(preferencesRef);
+    case CookiesEnabled:
+        return WKPreferencesGetCookieEnabled(preferencesRef);
     case SpatialNavigationEnabled:
         return WKPreferencesGetSpatialNavigationEnabled(preferencesRef);
     case LinksIncludedInFocusChain:
@@ -152,6 +155,9 @@ void QWebPreferencesPrivate::setAttribute(QWebPreferencesPrivate::WebAttribute a
         break;
     case NotificationsEnabled:
         WKPreferencesSetNotificationsEnabled(preferencesRef, enable);
+        break;
+    case CookiesEnabled:
+        WKPreferencesSetCookieEnabled(preferencesRef, enable);
         break;
     case SpatialNavigationEnabled:
         WKPreferencesSetSpatialNavigationEnabled(preferencesRef, enable);
@@ -586,6 +592,17 @@ void QWebPreferences::setNotificationsEnabled(bool enable)
 {
     d->setAttribute(QWebPreferencesPrivate::NotificationsEnabled, enable);
     emit notificationsEnabledChanged();
+}
+
+bool QWebPreferences::cookiesEnabled() const
+{
+    return d->testAttribute(QWebPreferencesPrivate::CookiesEnabled);
+}
+
+void QWebPreferences::setCookiesEnabled(bool enable)
+{
+    d->setAttribute(QWebPreferencesPrivate::CookiesEnabled, enable);
+    emit cookiesEnabledChanged();
 }
 
 bool QWebPreferences::universalAccessFromFileURLsAllowed() const
