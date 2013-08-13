@@ -44,6 +44,8 @@
 #if ENABLE(FULLSCREEN_API)
 #include "WebFullScreenManagerProxy.h"
 #endif
+#include "WebContext.h"
+#include "WebCookieManagerProxy.h"
 #include "WebPageGroup.h"
 #include "WebPreferences.h"
 #include "qglobal.h"
@@ -314,6 +316,7 @@ QQuickWebViewPrivate::QQuickWebViewPrivate(QQuickWebView* viewport)
     , m_renderToOffscreenBuffer(false)
     , m_allowAnyHTTPSCertificateForLocalHost(false)
     , m_autoCorrect(false)
+    , m_temporaryCookies(false)
     , m_loadProgress(0)
 {
     viewport->setClip(true);
@@ -345,6 +348,7 @@ void QQuickWebViewPrivate::initialize(WKContextRef contextRef, WKPageGroupRef pa
 #if ENABLE(FULLSCREEN_API)
     webPageProxy->fullScreenManager()->setWebView(q_ptr);
 #endif
+    cookieManagerProxy = context->context()->cookieManagerProxy();
 
     pageEventHandler.reset(new QtWebPageEventHandler(webPage.get(), pageView.data(), q_ptr));
 
@@ -1120,6 +1124,9 @@ QQuickWebViewExperimental::QQuickWebViewExperimental(QQuickWebView *webView, QQu
 
 QQuickWebViewExperimental::~QQuickWebViewExperimental()
 {
+    Q_D(QQuickWebView);
+    if (d->m_temporaryCookies)
+        deleteAllCookies();
 }
 
 void QQuickWebViewExperimental::setRenderToOffscreenBuffer(bool enable)
@@ -1209,6 +1216,22 @@ void QQuickWebViewExperimental::setAutoCorrect(bool autoCorrect)
 
     d->setAutoCorrect(autoCorrect);
     emit autoCorrectChanged();
+}
+
+bool QQuickWebViewExperimental::temporaryCookies() const
+{
+    Q_D(const QQuickWebView);
+    return d->m_temporaryCookies;
+}
+
+void QQuickWebViewExperimental::setTemporaryCookies(bool enable)
+{
+    Q_D(QQuickWebView);
+    if (enable == d->m_temporaryCookies)
+        return;
+
+    d->m_temporaryCookies = enable;
+    emit temporaryCookiesChanged();
 }
 
 void QQuickWebViewExperimental::setFlickableViewportEnabled(bool enable)
@@ -1543,6 +1566,18 @@ void QQuickWebViewExperimental::findText(const QString& string, FindFlags option
     WKRetainPtr<WKStringRef> str = adoptWK(WKStringCreateWithQString(string));
 
     WKPageFindString(d->webPage.get(), str.get(), wkOptions, std::numeric_limits<unsigned>::max() - 1);
+}
+
+void QQuickWebViewExperimental::deleteCookiesForHostname(const QString& hostname)
+{
+    if (d_ptr->cookieManagerProxy)
+        d_ptr->cookieManagerProxy.get()->deleteCookiesForHostname(hostname);
+}
+
+void QQuickWebViewExperimental::deleteAllCookies()
+{
+    if (d_ptr->cookieManagerProxy)
+        d_ptr->cookieManagerProxy.get()->deleteAllCookies();
 }
 
 QList<QUrl> QQuickWebViewExperimental::userScripts() const
