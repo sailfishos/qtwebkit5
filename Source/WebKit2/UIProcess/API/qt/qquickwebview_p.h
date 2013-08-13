@@ -264,6 +264,7 @@ class QWEBKIT_EXPORT QQuickWebViewExperimental : public QObject {
     Q_PROPERTY(int deviceHeight WRITE setDeviceHeight READ deviceHeight NOTIFY deviceHeightChanged)
 
     Q_PROPERTY(bool autoCorrect WRITE setAutoCorrect READ autoCorrect NOTIFY autoCorrectChanged)
+    Q_PROPERTY(bool temporaryCookies WRITE setTemporaryCookies READ temporaryCookies NOTIFY temporaryCookiesChanged FINAL)
 
     Q_PROPERTY(QWebNavigationHistory* navigationHistory READ navigationHistory CONSTANT FINAL)
 
@@ -364,6 +365,9 @@ public:
     bool autoCorrect() const;
     void setAutoCorrect(bool autoCorrect);
 
+    bool temporaryCookies() const;
+    void setTemporaryCookies(bool enable);
+
     // C++ only
     bool renderToOffscreenBuffer() const;
     void setRenderToOffscreenBuffer(bool enable);
@@ -382,6 +386,8 @@ public Q_SLOTS:
     void postMessage(const QString&);
     void evaluateJavaScript(const QString& script, const QJSValue& value = QJSValue());
     void findText(const QString& string, FindFlags options = 0);
+    void deleteCookiesForHostname(const QString&);
+    void deleteAllCookies();
 
 Q_SIGNALS:
     void loadVisuallyCommitted();
@@ -408,6 +414,7 @@ Q_SIGNALS:
     void preferredMinimumContentsWidthChanged();
     void remoteInspectorUrlChanged();
     void autoCorrectChanged();
+    void temporaryCookiesChanged();
 
     void textFound(int matchCount);
 
