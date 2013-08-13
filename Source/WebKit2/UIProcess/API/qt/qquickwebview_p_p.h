@@ -228,6 +228,7 @@ protected:
     bool m_renderToOffscreenBuffer;
     bool m_allowAnyHTTPSCertificateForLocalHost;
     bool m_autoCorrect;
+    bool m_temporaryCookies;
     QUrl m_iconUrl;
     int m_loadProgress;
     QString m_currentUrl;
