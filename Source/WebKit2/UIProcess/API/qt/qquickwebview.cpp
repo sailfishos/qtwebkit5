@@ -314,7 +314,10 @@ QQuickWebViewPrivate::QQuickWebViewPrivate(QQuickWebView* viewport)
     , databaseQuotaDialog(0)
     , colorChooser(0)
     , headerComponent(0)
+    , m_firstFrameRendered(false)
     , m_betweenLoadCommitAndFirstFrame(false)
+    , m_customLayoutWidth(0)
+    , m_relayoutRequested(false)
     , m_useDefaultContentItemSize(true)
     , m_navigatorQtObjectEnabled(false)
     , m_renderToOffscreenBuffer(false)
@@ -426,6 +429,12 @@ void QQuickWebViewPrivate::didStartProvisionalLoadForFrame(WKPageRef, WKFrameRef
 
 
     q->emitUrlChangeIfNeeded();
+
+    d->m_firstFrameRendered = false;
+    d->m_relayoutRequested = d->m_customLayoutWidth > 0 ? true : false;
+    if (d->m_relayoutRequested) {
+        d->webPageProxy->setFixedLayoutSize(WebCore::IntSize(0, 0));
+    }
 
     QWebLoadRequest loadRequest(WKURLCopyQUrl(url.get()), QQuickWebView::LoadStartedStatus);
     emit q->loadingChanged(&loadRequest);
@@ -602,8 +611,14 @@ void QQuickWebViewPrivate::didRenderFrame()
 {
     Q_Q(QQuickWebView);
     if (m_betweenLoadCommitAndFirstFrame) {
-        emit q->experimental()->loadVisuallyCommitted();
-        m_betweenLoadCommitAndFirstFrame = false;
+        if (m_customLayoutWidth > 0 && m_relayoutRequested) {
+            webPageProxy->setFixedLayoutSize(WebCore::IntSize(m_customLayoutWidth, q->height()));
+            m_relayoutRequested = false;
+        } else {
+            emit q->experimental()->loadVisuallyCommitted();
+            m_betweenLoadCommitAndFirstFrame = false;
+            m_firstFrameRendered = true;
+        }
     }
 }
 
@@ -1021,6 +1036,12 @@ void QQuickWebViewPrivate::updateHeader()
 WebCore::IntSize QQuickWebViewPrivate::viewSize() const
 {
     return WebCore::IntSize(pageView->width(), pageView->height());
+}
+
+bool QQuickWebViewExperimental::firstFrameRendered() const
+{
+     Q_D(const QQuickWebView);
+    return d->m_firstFrameRendered;
 }
 
 /*!
@@ -1598,6 +1619,25 @@ void QQuickWebViewExperimental::setDeviceHeight(int value)
     Q_D(QQuickWebView);
     d->webPageProxy->pageGroup()->preferences()->setDeviceHeight(qMax(0, value));
     emit deviceHeightChanged();
+}
+
+int QQuickWebViewExperimental::customLayoutWidth() const
+{
+    Q_D(const QQuickWebView);
+    return d->webPageProxy->fixedLayoutSize().width();
+}
+
+void QQuickWebViewExperimental::setCustomLayoutWidth(int value)
+{
+    Q_D(QQuickWebView);
+
+    WebCore::IntSize oldSize = d->webPageProxy->fixedLayoutSize();
+    if (oldSize.width() == value)
+        return;
+
+    d->m_customLayoutWidth = value;
+    d->m_relayoutRequested = true;
+    emit customLayoutWidthChanged();
 }
 
 /*!
