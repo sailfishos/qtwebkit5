@@ -233,7 +233,10 @@ protected:
     QList<QUrl> userScripts;
     QList<QUrl> userStyleSheets;
 
+    bool m_firstFrameRendered;
     bool m_betweenLoadCommitAndFirstFrame;
+    int m_customLayoutWidth;
+    bool m_relayoutRequested;
     bool m_useDefaultContentItemSize;
     bool m_navigatorQtObjectEnabled;
     bool m_renderToOffscreenBuffer;
