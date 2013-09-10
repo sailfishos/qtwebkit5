@@ -81,7 +81,7 @@ linux-*:!android {
 }
 
 have?(QTQUICK): {
-    QT += qml quick
+    QT += qml qml-private quick
     qtHaveModule(webchannel) {
         QT += webchannel
         DEFINES += HAVE_WEBCHANNEL
