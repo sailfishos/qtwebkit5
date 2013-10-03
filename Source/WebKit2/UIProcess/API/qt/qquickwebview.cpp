@@ -2088,7 +2088,7 @@ bool QQuickWebView::loading() const
 QPointF QQuickWebView::mapToWebContent(const QPointF& pointInViewCoordinates) const
 {
     Q_D(const QQuickWebView);
-    return d->pageView->transformFromItem().map(pointInViewCoordinates);
+    return d->pageView->transformFromItem(true).map(pointInViewCoordinates);
 }
 
 /*!
@@ -2098,7 +2098,7 @@ QPointF QQuickWebView::mapToWebContent(const QPointF& pointInViewCoordinates) co
 QRectF QQuickWebView::mapRectToWebContent(const QRectF& rectInViewCoordinates) const
 {
     Q_D(const QQuickWebView);
-    return d->pageView->transformFromItem().mapRect(rectInViewCoordinates);
+    return d->pageView->transformFromItem(true).mapRect(rectInViewCoordinates);
 }
 
 /*!
@@ -2108,7 +2108,7 @@ QRectF QQuickWebView::mapRectToWebContent(const QRectF& rectInViewCoordinates) c
 QPointF QQuickWebView::mapFromWebContent(const QPointF& pointInCSSCoordinates) const
 {
     Q_D(const QQuickWebView);
-    return d->pageView->transformToItem().map(pointInCSSCoordinates);
+    return d->pageView->transformToItem(true).map(pointInCSSCoordinates);
 }
 
 /*!
@@ -2117,7 +2117,7 @@ QPointF QQuickWebView::mapFromWebContent(const QPointF& pointInCSSCoordinates) c
 QRectF QQuickWebView::mapRectFromWebContent(const QRectF& rectInCSSCoordinates) const
 {
     Q_D(const QQuickWebView);
-    return d->pageView->transformToItem().mapRect(rectInCSSCoordinates);
+    return d->pageView->transformToItem(true).mapRect(rectInCSSCoordinates);
 }
 
 /*!
