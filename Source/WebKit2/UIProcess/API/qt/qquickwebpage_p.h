@@ -42,8 +42,8 @@ public:
     qreal contentsScale() const;
     QPointF adjustedPosition() const;
 
-    QTransform transformFromItem() const;
-    QTransform transformToItem() const;
+    QTransform transformFromItem(bool adjusted = false) const;
+    QTransform transformToItem(bool adjusted = false) const;
 
 protected:
     QSGNode* updatePaintNode(QSGNode*, UpdatePaintNodeData*) Q_DECL_OVERRIDE;
