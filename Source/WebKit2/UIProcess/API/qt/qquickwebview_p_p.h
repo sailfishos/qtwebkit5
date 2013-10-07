@@ -96,6 +96,8 @@ public:
     virtual void updateViewportSize() { }
     void updateTouchViewportSize();
 
+    virtual void setOverview(bool) {}
+
     virtual qreal zoomFactor() const { return 1; }
     virtual void setZoomFactor(qreal) { }
 
@@ -264,6 +266,8 @@ public:
 
     void pageDidRequestScroll(const QPoint& pos) Q_DECL_OVERRIDE;
     void handleMouseEvent(QMouseEvent*) Q_DECL_OVERRIDE;
+
+    virtual void setOverview(bool enabled);
 
 private:
     QScopedPointer<WebKit::PageViewportController> m_pageViewportController;

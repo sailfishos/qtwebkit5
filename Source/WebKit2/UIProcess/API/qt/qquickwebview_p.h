@@ -369,6 +369,8 @@ public:
 
     int customLayoutWidth() const;
     void setCustomLayoutWidth(int);
+    bool overview() const;
+    void setOverview(bool enabled);
 
     bool temporaryCookies() const;
     void setTemporaryCookies(bool enable);
