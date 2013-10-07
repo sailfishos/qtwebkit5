@@ -371,6 +371,9 @@ public:
     bool autoCorrect() const;
     void setAutoCorrect(bool autoCorrect);
 
+    bool overview() const;
+    void setOverview(bool enabled);
+
     bool temporaryCookies() const;
     void setTemporaryCookies(bool enable);
 
