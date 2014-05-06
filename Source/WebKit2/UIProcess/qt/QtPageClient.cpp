@@ -154,6 +154,16 @@ void QtPageClient::handleProxyAuthenticationRequiredRequest(const String& hostna
     password = qPassword;
 }
 
+void QtPageClient::handleNetworkRequestIgnored()
+{
+    QQuickWebViewPrivate::get(m_webView)->handleNetworkRequestIgnored();
+}
+
+void QtPageClient::handleOfflineChanged(bool state)
+{
+    QQuickWebViewPrivate::get(m_webView)->handleOfflineChanged(state);
+}
+
 void QtPageClient::setCursor(const WebCore::Cursor& cursor)
 {
     m_webView->setCursor(*cursor.platformCursor());
