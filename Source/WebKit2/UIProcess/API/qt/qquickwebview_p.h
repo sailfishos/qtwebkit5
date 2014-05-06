@@ -264,6 +264,7 @@ class QWEBKIT_EXPORT QQuickWebViewExperimental : public QObject {
     Q_PROPERTY(int deviceHeight WRITE setDeviceHeight READ deviceHeight NOTIFY deviceHeightChanged)
     Q_PROPERTY(int customLayoutWidth WRITE setCustomLayoutWidth READ customLayoutWidth NOTIFY customLayoutWidthChanged)
     Q_PROPERTY(bool temporaryCookies WRITE setTemporaryCookies READ temporaryCookies NOTIFY temporaryCookiesChanged FINAL)
+    Q_PROPERTY(bool offline WRITE setOffline READ offline NOTIFY offlineChanged FINAL)
 
     Q_PROPERTY(QWebNavigationHistory* navigationHistory READ navigationHistory CONSTANT FINAL)
 
@@ -375,7 +376,11 @@ public:
     bool temporaryCookies() const;
     void setTemporaryCookies(bool enable);
 
+    bool offline() const;
+    void setOffline(bool state);
+
     // C++ only
+    void handleOfflineChanged(bool state);
     bool renderToOffscreenBuffer() const;
     void setRenderToOffscreenBuffer(bool enable);
     static void setFlickableViewportEnabled(bool enable);
@@ -428,11 +433,13 @@ Q_SIGNALS:
     void autoCorrectChanged();
     void temporaryCookiesChanged();
     void textFound(int matchCount);
+    void offlineChanged();
 
     void processDidCrash();
     void didRelaunchProcess();
     void processDidBecomeUnresponsive();
     void processDidBecomeResponsive();
+    void networkRequestIgnored();
 
 #ifdef HAVE_WEBCHANNEL
     void webChannelChanged(QQmlWebChannel* channel);
@@ -444,6 +451,7 @@ private:
     QQuickWebViewPrivate* d_ptr;
     QObject* schemeParent;
     QWebKitTest* m_test;
+    bool m_offline;
 
 #ifdef HAVE_WEBCHANNEL
     QQmlWebChannel* m_webChannel;
