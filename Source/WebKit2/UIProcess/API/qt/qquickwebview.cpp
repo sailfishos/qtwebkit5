@@ -810,6 +810,18 @@ bool QQuickWebViewPrivate::handleCertificateVerificationRequest(const QString& h
     return dialogRunner.wasAccepted();
 }
 
+void QQuickWebViewPrivate::handleNetworkRequestIgnored()
+{
+    Q_Q(QQuickWebView);
+    emit q->experimental()->networkRequestIgnored();
+}
+
+void QQuickWebViewPrivate::handleOfflineChanged(bool state)
+{
+    Q_Q(QQuickWebView);
+    q->experimental()->handleOfflineChanged(state);
+}
+
 void QQuickWebViewPrivate::chooseFiles(WKOpenPanelResultListenerRef listenerRef, const QStringList& selectedFileNames, QtWebPageUIClient::FileChooserType type)
 {
     Q_Q(QQuickWebView);
@@ -1174,6 +1186,7 @@ QQuickWebViewExperimental::QQuickWebViewExperimental(QQuickWebView *webView, QQu
     , d_ptr(webViewPrivate)
     , schemeParent(new QObject(this))
     , m_test(new QWebKitTest(webViewPrivate, this))
+    , m_offline(0)
 #ifdef HAVE_WEBCHANNEL
     , m_webChannel(new QQmlWebChannel(this))
     , m_webChannelTransport(new QWebChannelWebKitTransport(this))
@@ -1294,6 +1307,26 @@ void QQuickWebViewExperimental::setTemporaryCookies(bool enable)
 
     d->m_temporaryCookies = enable;
     emit temporaryCookiesChanged();
+}
+
+bool QQuickWebViewExperimental::offline() const
+{
+    return m_offline;
+}
+
+void QQuickWebViewExperimental::setOffline(bool state)
+{
+    Q_D(const QQuickWebView);
+    d->webPageProxy->setOffline(state);
+}
+
+void QQuickWebViewExperimental::handleOfflineChanged(bool state)
+{
+    if (state == m_offline)
+        return;
+
+    m_offline = state;
+    emit offlineChanged();
 }
 
 void QQuickWebViewExperimental::setFlickableViewportEnabled(bool enable)
