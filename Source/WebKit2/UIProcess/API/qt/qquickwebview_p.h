@@ -219,6 +219,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_onUrlChanged());
     Q_PRIVATE_SLOT(d_func(), void _q_onReceivedResponseFromDownload(QWebDownloadItem*));
     Q_PRIVATE_SLOT(d_func(), void _q_onIconChangedForPageURL(const QString&));
+    Q_PRIVATE_SLOT(d_func(), void _q_onPinchingChanged(bool));
 
     // Hides QObject::d_ptr allowing us to use the convenience macros.
     QScopedPointer<QQuickWebViewPrivate> d_ptr;
@@ -266,6 +267,7 @@ class QWEBKIT_EXPORT QQuickWebViewExperimental : public QObject {
     Q_PROPERTY(bool autoCorrect WRITE setAutoCorrect READ autoCorrect NOTIFY autoCorrectChanged)
     Q_PROPERTY(bool temporaryCookies WRITE setTemporaryCookies READ temporaryCookies NOTIFY temporaryCookiesChanged FINAL)
     Q_PROPERTY(bool offline WRITE setOffline READ offline NOTIFY offlineChanged FINAL)
+    Q_PROPERTY(bool pinching READ pinching NOTIFY pinchingChanged FINAL)
 
     Q_PROPERTY(QWebNavigationHistory* navigationHistory READ navigationHistory CONSTANT FINAL)
 
@@ -375,6 +377,8 @@ public:
     bool overview() const;
     void setOverview(bool enabled);
 
+    bool pinching() const;
+
     bool temporaryCookies() const;
     void setTemporaryCookies(bool enable);
 
@@ -434,6 +438,7 @@ Q_SIGNALS:
 
     void textFound(int matchCount);
     void offlineChanged();
+    void pinchingChanged();
 
     void processDidCrash();
     void didRelaunchProcess();
