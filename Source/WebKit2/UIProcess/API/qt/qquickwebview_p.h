@@ -293,6 +293,7 @@ class QWEBKIT_EXPORT QQuickWebViewExperimental : public QObject {
     Q_PROPERTY(QList<QUrl> userScripts READ userScripts WRITE setUserScripts NOTIFY userScriptsChanged)
     Q_PROPERTY(QList<QUrl> userStyleSheets READ userStyleSheets WRITE setUserStyleSheets NOTIFY userStyleSheetsChanged)
     Q_PROPERTY(QUrl remoteInspectorUrl READ remoteInspectorUrl NOTIFY remoteInspectorUrlChanged FINAL)
+    Q_PROPERTY(bool enableInputFieldAnimation READ enableInputFieldAnimation WRITE setEnableInputFieldAnimation NOTIFY enableInputFieldAnimationChanged)
 #ifdef HAVE_WEBCHANNEL
     Q_PROPERTY(QQmlWebChannel* webChannel READ webChannel WRITE setWebChannel NOTIFY webChannelChanged)
 #endif
@@ -349,6 +350,10 @@ public:
     QList<QUrl> userStyleSheets() const;
     void setUserStyleSheets(const QList<QUrl>& userScripts);
     QUrl remoteInspectorUrl() const;
+    bool enableInputFieldAnimation() const;
+    void setEnableInputFieldAnimation(bool enableInputFieldAnimation);
+
+    Q_INVOKABLE void animateInputFieldVisible();
 
     QWebKitTest* test();
 
@@ -448,6 +453,7 @@ Q_SIGNALS:
     void textFound(int matchCount);
     void offlineChanged();
     void pinchingChanged();
+    void enableInputFieldAnimationChanged();
 
     void processDidCrash();
     void didRelaunchProcess();
