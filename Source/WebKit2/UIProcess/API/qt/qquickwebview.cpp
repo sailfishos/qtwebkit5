@@ -328,6 +328,7 @@ QQuickWebViewPrivate::QQuickWebViewPrivate(QQuickWebView* viewport)
     , m_loadProgress(0)
     , m_pinching(false)
     , m_enableInputFieldAnimation(true)
+    , m_enableResizeContent(true)
 {
     viewport->setClip(true);
     viewport->setPixelAligned(true);
@@ -1289,6 +1290,27 @@ void QQuickWebViewExperimental::setEnableInputFieldAnimation(bool enableInputFie
 
     d->m_enableInputFieldAnimation = enableInputFieldAnimation;
     emit enableInputFieldAnimationChanged();
+}
+
+bool QQuickWebViewExperimental::enableResizeContent() const
+{
+    Q_D(const QQuickWebView);
+    return d->m_enableResizeContent;
+}
+
+void QQuickWebViewExperimental::setEnableResizeContent(bool enableResizeContent)
+{
+    Q_D(QQuickWebView);
+
+    if (d->m_enableResizeContent == enableResizeContent)
+        return;
+
+    d->m_enableResizeContent = enableResizeContent;
+    emit enableResizeContentChanged();
+
+    if (d->m_enableResizeContent) {
+        d->updateViewportSize();
+    }
 }
 
 void QQuickWebViewExperimental::animateInputFieldVisible()
@@ -2365,7 +2387,7 @@ void QQuickWebView::geometryChanged(const QRectF& newGeometry, const QRectF& old
 {
     Q_D(QQuickWebView);
     QQuickFlickable::geometryChanged(newGeometry, oldGeometry);
-    if (newGeometry.size() != oldGeometry.size())
+    if (newGeometry.size() != oldGeometry.size() && d->m_enableResizeContent)
         d->updateViewportSize();
 }
 
