@@ -255,6 +255,7 @@ find %{buildroot}%{_libdir} -type f -name '*.prl' \
 %files -n qt5-qtqml-import-webkitplugin
 %defattr(-,root,root,-)
 %{_libdir}/qt5/qml/QtWebKit/libqmlwebkitplugin.so
+%{_libdir}/qt5/qml/QtWebKit/plugins.qmltypes
 %{_libdir}/qt5/qml/QtWebKit/qmldir
 
 %files -n qt5-qtqml-import-webkitplugin-experimental
