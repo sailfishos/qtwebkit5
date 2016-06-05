@@ -19,6 +19,8 @@ INCLUDEPATH += $$QT.core.includes
 CONFIG += console
 CONFIG -= qt
 
+DEFINES += QT_NO_VERSION_TAGGING
+
 defineTest(addIncludePaths) {
     # Just needed for include paths
     include(JavaScriptCore.pri)

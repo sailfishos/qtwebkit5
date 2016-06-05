@@ -2256,7 +2256,7 @@ QVariant QQuickWebView::inputMethodQuery(Qt::InputMethodQuery property) const
         if (state.inputMethodHints == Qt::ImhNone && !d->autoCorrect()) {
             return int(Qt::InputMethodHints(Qt::ImhNoAutoUppercase | Qt::ImhNoPredictiveText));
         } else {
-            return int(Qt::InputMethodHints(state.inputMethodHints));
+            return int(Qt::InputMethodHints(int(state.inputMethodHints)));
         }
     } default:
         // Rely on the base implementation for ImEnabled, ImHints and ImPreferredLanguage.
