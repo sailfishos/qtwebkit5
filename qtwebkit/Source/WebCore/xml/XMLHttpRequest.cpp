@@ -104,6 +104,7 @@ XMLHttpRequestStaticData::XMLHttpRequestStaticData()
     m_forbiddenRequestHeaders.add("cookie");
     m_forbiddenRequestHeaders.add("cookie2");
     m_forbiddenRequestHeaders.add("date");
+    m_forbiddenRequestHeaders.add("dnt");
     m_forbiddenRequestHeaders.add("expect");
     m_forbiddenRequestHeaders.add("host");
     m_forbiddenRequestHeaders.add("keep-alive");
@@ -784,7 +785,7 @@ void XMLHttpRequest::createRequest(ExceptionCode& ec)
     options.sniffContent = DoNotSniffContent;
     options.preflightPolicy = uploadEvents ? ForcePreflight : ConsiderPreflight;
     options.allowCredentials = (m_sameOriginRequest || m_includeCredentials) ? AllowStoredCredentials : DoNotAllowStoredCredentials;
-    options.crossOriginRequestPolicy = UseAccessControl;
+    options.crossOriginRequestPolicy = securityOrigin()->allowsCrossOriginRequests() ? UseAccessControl : DenyCrossOriginRequests;
     options.securityOrigin = securityOrigin();
 #if ENABLE(RESOURCE_TIMING)
     options.initiator = cachedResourceRequestInitiators().xmlhttprequest;

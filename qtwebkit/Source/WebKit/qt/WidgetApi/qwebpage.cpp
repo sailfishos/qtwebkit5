@@ -68,6 +68,7 @@
 #include <QNetworkProxy>
 #include <QNetworkRequest>
 #include <QPainter>
+#include <QScreen>
 #include <QSslSocket>
 #include <QStyle>
 #include <QSysInfo>
@@ -80,6 +81,7 @@
 #include <QTouchEvent>
 #include <QUndoStack>
 #include <QUrl>
+#include <QWindow>
 #if defined(Q_WS_X11)
 #include <QX11Info>
 #endif
@@ -195,6 +197,7 @@ QWebPagePrivate::QWebPagePrivate(QWebPage *qq)
     , linkPolicy(QWebPage::DontDelegateLinks)
     , m_viewportSize(QSize(0, 0))
     , useFixedLayout(false)
+    , window(0)
     , inspectorFrontend(0)
     , inspector(0)
     , inspectorIsInternalOnly(false)
@@ -407,7 +410,7 @@ bool QWebPagePrivate::errorPageExtension(QWebPageAdapter::ErrorPageOption *opt, 
         option.domain = QWebPage::QtNetwork;
     else if (opt->domain == QLatin1String("HTTP"))
         option.domain = QWebPage::Http;
-    else if (opt->domain == QLatin1String("WebKit"))
+    else if (opt->domain == QLatin1String("WebKit") || opt->domain == QLatin1String("WebKitErrorDomain"))
         option.domain = QWebPage::WebKit;
     else
         return false;
@@ -435,8 +438,10 @@ QtPluginWidgetAdapter *QWebPagePrivate::adapterForWidget(QObject *object) const
 {
     if (QWidget *widget = qobject_cast<QWidget*>(object))
         return new QWidgetPluginImpl(widget);
+#ifndef QT_NO_GRAPHICSVIEW
     if (QGraphicsWidget *widget = qobject_cast<QGraphicsWidget*>(object))
         return new QGraphicsWidgetPluginImpl(widget);
+#endif
     return 0;
 }
 
@@ -907,6 +912,10 @@ void QWebPagePrivate::dropEvent(T *ev)
 
 void QWebPagePrivate::leaveEvent(QEvent*)
 {
+    // If a mouse button is pressed we will continue to receive mouse events after leaving the window.
+    if (mousePressed)
+        return;
+
     // Fake a mouse move event just outside of the widget, since all
     // the interesting mouse-out behavior like invalidating scrollbars
     // is handled by the WebKit event handler's mouseMoved function.
@@ -940,13 +949,14 @@ QPalette QWebPage::palette() const
 
 void QWebPagePrivate::shortcutOverrideEvent(QKeyEvent* event)
 {
-    if (handleShortcutOverrideEvent(event))
-        return;
+    if (handleShortcutOverrideEvent(event)) {
+        if (event->isAccepted())
+            return;
 #ifndef QT_NO_SHORTCUT
-    if (editorActionForKeyEvent(event) != QWebPage::NoWebAction)
-        event->accept();
+        else if (editorActionForKeyEvent(event) != QWebPage::NoWebAction)
+            event->accept();
 #endif
-
+    }
 }
 
 bool QWebPagePrivate::gestureEvent(QGestureEvent* event)
@@ -993,7 +1003,7 @@ bool QWebPagePrivate::gestureEvent(QGestureEvent* event)
 
   \a property specifies which property is queried.
 
-  \sa QWidget::inputMethodEvent(), QInputMethodEvent, QInputContext
+  \sa QWidget::inputMethodEvent(), QInputMethodEvent
 */
 QVariant QWebPage::inputMethodQuery(Qt::InputMethodQuery property) const
 {
@@ -1204,6 +1214,48 @@ QWebInspector* QWebPagePrivate::getOrCreateInspector()
     \value WebModalDialog The window acts as modal dialog.
 */
 
+/*!
+    \enum QWebPage::PermissionPolicy
+
+    This enum describes the permission policies that the user may set for data or device access.
+
+    \value PermissionUnknown It is unknown whether the user grants or denies permission.
+    \value PermissionGrantedByUser The user has granted permission.
+    \value PermissionDeniedByUser The user has denied permission.
+
+    \sa featurePermissionRequested(), featurePermissionRequestCanceled(), setFeaturePermission(), Feature
+*/
+
+/*!
+    \enum QWebPage::Feature
+
+    This enum describes the platform feature access categories that the user may be asked to grant or deny access to.
+
+    \value Notifications Access to notifications
+    \value Geolocation Access to location hardware or service
+
+    \sa featurePermissionRequested(), featurePermissionRequestCanceled(), setFeaturePermission(), PermissionPolicy
+
+*/
+
+/*!
+    \fn void QWebPage::featurePermissionRequested(QWebFrame* frame, QWebPage::Feature feature);
+
+    This is signal is emitted when the given \a frame requests to make use of
+    the resource or device identified by \a feature.
+
+    \sa featurePermissionRequestCanceled(), setFeaturePermission()
+*/
+
+/*!
+    \fn void QWebPage::featurePermissionRequestCanceled(QWebFrame* frame, QWebPage::Feature feature);
+
+    This is signal is emitted when the given \a frame cancels a previously issued
+    request to make use of \a feature.
+
+    \sa featurePermissionRequested(), setFeaturePermission()
+
+*/
 
 /*!
     \class QWebPage::ViewportAttributes
@@ -1605,6 +1657,13 @@ bool QWebPage::shouldInterruptJavaScript()
 #endif
 }
 
+/*!
+    \fn void QWebPage::setFeaturePermission(QWebFrame* frame, Feature feature, PermissionPolicy policy)
+
+    Sets the permission for the given \a frame to use \a feature to \a policy.
+
+    \sa featurePermissionRequested(), featurePermissionRequestCanceled()
+*/
 void QWebPage::setFeaturePermission(QWebFrame* frame, Feature feature, PermissionPolicy policy)
 {
 #if !ENABLE(NOTIFICATIONS) && !ENABLE(LEGACY_NOTIFICATIONS) && !ENABLE(GEOLOCATION)
@@ -1941,13 +2000,37 @@ void QWebPage::setViewportSize(const QSize &size) const
 {
     d->m_viewportSize = size;
 
+    d->updateWindow();
+
     QWebFrameAdapter* mainFrame = d->mainFrameAdapter();
     if (!mainFrame->hasView())
         return;
 
-    d->setDevicePixelRatio(d->view->devicePixelRatio());
-
     mainFrame->setViewportSize(size);
+}
+
+void QWebPagePrivate::updateWindow()
+{
+    QWindow* _window = 0;
+    if (view && view->window())
+        _window = view->window()->windowHandle();
+
+    if (window == _window)
+        return;
+
+    if (window)
+        QObject::disconnect(window, SIGNAL(screenChanged(QScreen*)), q, SLOT(_q_updateScreen(QScreen*)));
+    window = _window;
+    if (window) {
+        QObject::connect(window, SIGNAL(screenChanged(QScreen*)), q, SLOT(_q_updateScreen(QScreen*)));
+        _q_updateScreen(window->screen());
+    }
+}
+
+void QWebPagePrivate::_q_updateScreen(QScreen* screen)
+{
+    if (screen)
+        setDevicePixelRatio(screen->devicePixelRatio());
 }
 
 static int getintenv(const char* variable)
@@ -2121,6 +2204,9 @@ bool QWebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &
             return true;
 
         case DelegateExternalLinks:
+            if (request.url().scheme().isEmpty() &&
+              QWebPageAdapter::treatSchemeAsLocal(frame->baseUrl().scheme()))
+                return true;
             if (QWebPageAdapter::treatSchemeAsLocal(request.url().scheme()))
                 return true;
             emit linkClicked(request.url());
@@ -2604,6 +2690,12 @@ bool QWebPage::event(QEvent *ev)
         d->dynamicPropertyChangeEvent(this, static_cast<QDynamicPropertyChangeEvent*>(ev));
         break;
 #endif
+    case QEvent::Show:
+        d->setPluginsVisible(true);
+        break;
+    case QEvent::Hide:
+        d->setPluginsVisible(false);
+        break;
     default:
         return QObject::event(ev);
     }
@@ -3312,9 +3404,7 @@ QWebPage::VisibilityState QWebPage::visibilityState() const
     \fn void QWebPage::scrollRequested(int dx, int dy, const QRect& rectToScroll)
 
     This signal is emitted whenever the content given by \a rectToScroll needs
-    to be scrolled \a dx and \a dy downwards and no view was set.
-
-    \sa view()
+    to be scrolled \a dx and \a dy downwards.
 */
 
 /*!
@@ -3440,11 +3530,6 @@ QWebPage::VisibilityState QWebPage::visibilityState() const
   \fn void QWebPage::restoreFrameStateRequested(QWebFrame* frame);
 
   This signal is emitted when the load of \a frame is finished and the application may now update its state accordingly.
-*/
-
-/*!
-  \fn QWebPagePrivate* QWebPage::handle() const
-  \internal
 */
 
 #include "moc_qwebpage.cpp"

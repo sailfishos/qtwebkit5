@@ -85,6 +85,7 @@ bool WebCoreHas3DRendering = true;
 namespace WebCore {
 
 static const int canvasAreaThresholdRequiringCompositing = 50 * 100;
+static const int largeAreaThresholdForCompositing = 8192 * 8192;
 // During page loading delay layer flushes up to this many seconds to allow them coalesce, reducing workload.
 static const double throttledLayerFlushDelay = .5;
 
@@ -324,7 +325,13 @@ void RenderLayerCompositor::cacheAcceleratedCompositingFlags()
 
 bool RenderLayerCompositor::canRender3DTransforms() const
 {
+#if !ENABLE(3D_RENDERING)
+    return false;
+#elif PLATFORM(QT)
+    return true;
+#else
     return hasAcceleratedCompositing() && (m_compositingTriggers & ChromeClient::ThreeDTransformTrigger);
+#endif
 }
 
 void RenderLayerCompositor::setCompositingLayersNeedRebuild(bool needRebuild)
@@ -767,7 +774,8 @@ bool RenderLayerCompositor::updateBacking(RenderLayer* layer, CompositingChangeR
             if (ScrollingCoordinator* scrollingCoordinator = this->scrollingCoordinator())
                 scrollingCoordinator->frameViewFixedObjectsDidChange(m_renderView->frameView());
         }
-    }
+    } else
+        layer->setViewportConstrainedNotCompositedReason(RenderLayer::NoNotCompositedReason);
     
     if (layer->backing())
         layer->backing()->updateDebugIndicators(m_showDebugBorders, m_showRepaintCounter);
@@ -1803,6 +1811,9 @@ bool RenderLayerCompositor::requiresCompositingLayer(const RenderLayer* layer, R
 
 bool RenderLayerCompositor::canBeComposited(const RenderLayer* layer) const
 {
+    if (!(m_compositingTriggers & ChromeClient::LargeAreaTrigger) && layer->size().area() > largeAreaThresholdForCompositing)
+        return false;
+
     // FIXME: We disable accelerated compositing for elements in a RenderFlowThread as it doesn't work properly.
     // See http://webkit.org/b/84900 to re-enable it.
     return m_hasAcceleratedCompositing && layer->isSelfPaintingLayer() && layer->renderer()->flowThreadState() == RenderObject::NotInsideFlowThread;

@@ -13,7 +13,7 @@ QT -= gui
 
 win32-*: CONFIG += console
 win32-msvc*: CONFIG += exceptions_off stl_off
-win32-msvc*|win32-icc: INCLUDEPATH += $$ROOT_WEBKIT_DIR/Source/JavaScriptCore/os-win32
+contains(MSVC_VER, "(9|10|11|12)\.0)"): INCLUDEPATH += $$ROOT_WEBKIT_DIR/Source/JavaScriptCore/os-win32
 
 WEBKIT += javascriptcore wtf
 
