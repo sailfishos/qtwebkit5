@@ -170,6 +170,7 @@ qmake -qt=5 CONFIG+=release CONFIG-=debug \
        CONFIG-=separate_debug_info \
        QMAKE_CFLAGS+=$QMAKE_CFLAGS_RELEASE \
        QMAKE_CXXFLAGS+=$QMAKE_CXXFLAGS_RELEASE \
+       CONFIG-=create_cmake \
        CONFIG*=use_all_in_one_files \
        WEBKIT_CONFIG-=ftpdir \
        WEBKIT_CONFIG-=video \
