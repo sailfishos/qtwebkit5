@@ -11,15 +11,23 @@ INCLUDEPATH += $$PWD
 mac {
     # Mac OS does ship libicu but not the associated header files.
     # Therefore WebKit provides adequate header files.
-    INCLUDEPATH += $${ROOT_WEBKIT_DIR}/Source/WTF/icu
+    INCLUDEPATH = $${ROOT_WEBKIT_DIR}/Source/WTF/icu $$INCLUDEPATH
     LIBS += -licucore
-} else {
-    contains(QT_CONFIG,icu) {
-        win32: LIBS += -licuin -licuuc -licudt
-        else:!contains(QT_CONFIG,no-pkg-config):packagesExist("icu-i18n"): PKGCONFIG *= icu-i18n
-        else:android: LIBS += -licui18n -licuuc
-        else: LIBS += -licui18n -licuuc -licudata
+} else:!use?(wchar_unicode): {
+    win32 {
+        CONFIG(static, static|shared) {
+            CONFIG(debug, debug|release) {
+                LIBS += -lsicuind -lsicuucd -lsicudtd
+            } else {
+                LIBS += -lsicuin -lsicuuc -lsicudt
+            }
+        } else {
+            LIBS += -licuin -licuuc -licudt
+        }
     }
+    else:!contains(QT_CONFIG,no-pkg-config):packagesExist("icu-i18n"): PKGCONFIG *= icu-i18n
+    else:android: LIBS += -licui18n -licuuc
+    else: LIBS += -licui18n -licuuc -licudata
 }
 
 use?(GLIB) {
@@ -41,4 +49,4 @@ mac {
 }
 
 # MSVC is lacking stdint.h as well as inttypes.h.
-win32-msvc*|win32-icc|wince*: INCLUDEPATH += $$ROOT_WEBKIT_DIR/Source/JavaScriptCore/os-win32
+contains(MSVC_VER, "(9|10|11|12)\.0"): INCLUDEPATH += $$ROOT_WEBKIT_DIR/Source/JavaScriptCore/os-win32

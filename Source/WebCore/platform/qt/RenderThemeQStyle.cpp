@@ -153,6 +153,13 @@ QRect RenderThemeQStyle::inflateButtonRect(const QRect& originalRect) const
     return originalRect;
 }
 
+int extendFixedPadding(Length oldPadding, int padding) {
+    if (oldPadding.isFixed()) {
+        return std::max(oldPadding.intValue(), padding);
+    }
+    return padding;
+}
+
 void RenderThemeQStyle::computeSizeBasedOnStyle(RenderStyle* renderStyle) const
 {
     QSize size(0, 0);
@@ -163,13 +170,14 @@ void RenderThemeQStyle::computeSizeBasedOnStyle(RenderStyle* renderStyle) const
     case SearchFieldPart:
     case TextFieldPart: {
         int padding = m_qStyle->findFrameLineWidth();
-        renderStyle->setPaddingLeft(Length(padding, Fixed));
-        renderStyle->setPaddingRight(Length(padding, Fixed));
-        renderStyle->setPaddingTop(Length(padding, Fixed));
-        renderStyle->setPaddingBottom(Length(padding, Fixed));
+        renderStyle->setPaddingLeft(Length(extendFixedPadding(renderStyle->paddingLeft(),  padding), Fixed));
+        renderStyle->setPaddingRight(Length(extendFixedPadding(renderStyle->paddingRight(),  padding), Fixed));
+        renderStyle->setPaddingTop(Length(extendFixedPadding(renderStyle->paddingTop(),  padding), Fixed));
+        renderStyle->setPaddingBottom(Length(extendFixedPadding(renderStyle->paddingBottom(),  padding), Fixed));
         break;
     }
     default:
+        renderStyle->resetPadding();
         break;
     }
     // If the width and height are both specified, then we have nothing to do.
@@ -436,7 +444,7 @@ bool RenderThemeQStyle::paintSliderTrack(RenderObject* o, const PaintInfo& pi, c
         p.styleOption.state |= QStyleFacade::State_Sunken;
 
     // some styles need this to show a highlight on one side of the groove
-    HTMLInputElement* slider = o->node()->toInputElement();
+    HTMLInputElement* slider = o->node() ? o->node()->toInputElement() : 0;
     if (slider && slider->isSteppable()) {
         p.styleOption.slider.upsideDown = (p.appearance == SliderHorizontalPart) && !o->style()->isLeftToRightDirection();
         // Use the width as a multiplier in case the slider values are <= 1

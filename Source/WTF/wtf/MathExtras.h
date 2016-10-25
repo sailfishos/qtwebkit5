@@ -43,7 +43,7 @@
 #include <machine/ieee.h>
 #endif
 
-#if OS(QNX)
+#if OS(QNX) || COMPILER(INTEL)
 // FIXME: Look into a way to have cmath import its functions into both the standard and global
 // namespace. For now, we include math.h since the QNX cmath header only imports its functions
 // into the standard namespace.
@@ -106,7 +106,7 @@ inline bool isinf(double x) { return !finite(x) && !isnand(x); }
 
 #endif
 
-#if OS(OPENBSD)
+#if OS(OPENBSD) && __cplusplus < 201103L
 
 namespace std {
 
@@ -148,8 +148,8 @@ inline double trunc(double num) { return num > 0 ? floor(num) : ceil(num); }
 
 #endif
 
-#if COMPILER(GCC) && OS(QNX)
-// The stdlib on QNX doesn't contain long abs(long). See PR #104666.
+#if COMPILER(GCC) && OS(QNX) && _CPPLIB_VER < 640
+// The stdlib on QNX < 6.6 doesn't contain long abs(long). See PR #104666.
 inline long long abs(long num) { return labs(num); }
 #endif
 
@@ -279,7 +279,7 @@ template<typename T> inline T clampTo(double value, T min = defaultMinimumForCla
         return min;
     return static_cast<T>(value);
 }
-template<> inline long long int clampTo(double, long long int, long long int); // clampTo does not support long long ints.
+template<> long long int clampTo(double, long long int, long long int); // clampTo does not support long long ints.
 
 inline int clampToInteger(double value)
 {

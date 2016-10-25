@@ -125,7 +125,11 @@ enable?(XSLT) {
 }
 
 use?(ZLIB) {
-    LIBS += -lz
+    if(unix|mingw):LIBS += -lz
+    else {
+        isEmpty(ZLIB_LIBS): LIBS += zdll.lib
+        else: LIBS += $$ZLIB_LIBS
+    }
 }
 
 enable?(NETSCAPE_PLUGIN_API) {
@@ -203,7 +207,7 @@ enable?(WEB_AUDIO) {
 
 use?(3D_GRAPHICS) {
     win32: {
-        win32-g++*: {
+        mingw: {
             # Make sure OpenGL libs are after the webcore lib so MinGW can resolve symbols
             contains(QT_CONFIG, opengles2) {
                 CONFIG(debug, debug|release):contains(QT_CONFIG, angle) {
@@ -229,7 +233,7 @@ use?(GRAPHICS_SURFACE) {
 }
 
 have?(sqlite3) {
-    mac {
+    osx|contains(QT_CONFIG, no-pkg-config) {
         LIBS += -lsqlite3
     } else {
         PKGCONFIG += sqlite3
@@ -246,8 +250,16 @@ have?(sqlite3) {
     }
 }
 
-use?(libjpeg): LIBS += -ljpeg
-use?(libpng): LIBS += -lpng
+use?(system_leveldb): LIBS += -lleveldb -lmemenv
+
+use?(libjpeg) {
+    msvc: LIBS += libjpeg.lib
+    else: LIBS += -ljpeg
+}
+use?(libpng) {
+    if(unix|mingw): LIBS += -lpng
+    else:win32:     LIBS += libpng.lib
+}
 use?(webp): LIBS += -lwebp
 
 enable?(opencl) {
@@ -277,10 +289,12 @@ win32 {
 }
 
 # Remove whole program optimizations due to miscompilations
-win32-msvc2005|win32-msvc2008|win32-msvc2010|win32-msvc2012|win32-msvc2013|wince*:{
+win32-msvc*|wince* {
     QMAKE_CFLAGS_LTCG -= -GL
     QMAKE_CXXFLAGS_LTCG -= -GL
+}
 
+win32-msvc*|wince* {
     # Disable incremental linking for windows 32bit OS debug build as WebKit is so big
     # that linker failes to link incrementally in debug mode.
     ARCH = $$(PROCESSOR_ARCHITECTURE)
@@ -304,5 +318,5 @@ linux*-g++*:QMAKE_LFLAGS += $$QMAKE_LFLAGS_NOUNDEF
 
 enable_fast_mobile_scrolling: DEFINES += ENABLE_FAST_MOBILE_SCROLLING=1
 
-!production_build:have?(FONTCONFIG): PKGCONFIG += fontconfig
+build?(qttestsupport):have?(FONTCONFIG): PKGCONFIG += fontconfig
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the theme implementation for form controls in WebCore.
  *
- * Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+ * Copyright (C) 2015 The Qt Company Ltd.
  * Copyright (C) 2011-2012 Nokia Corporation and/or its subsidiary(-ies).
  *
  * This library is free software; you can redistribute it and/or
@@ -209,7 +209,7 @@ int QStyleFacadeImp::sliderThickness(Qt::Orientation orientation) const
 
 int QStyleFacadeImp::progressBarChunkWidth(const QSize& size) const
 {
-    QStyleOptionProgressBarV2 option;
+    QStyleOptionProgressBar option;
     option.rect.setSize(size);
     // FIXME: Until http://bugreports.qt.nokia.com/browse/QTBUG-9171 is fixed,
     // we simulate one square animating across the progress bar.
@@ -248,6 +248,9 @@ void QStyleFacadeImp::paintButton(QPainter* painter, QStyleFacade::ButtonType ty
     QWidget* widget = qobject_cast<QWidget*>(widgetForPainter(painter));
     MappedStyleOption<QStyleOptionButton> option(widget, proxyOption);
 
+    if (option.styleObject)
+        option.styleObject->setProperty("_q_no_animation", true);
+
     if (type == PushButton)
         style()->drawControl(QStyle::CE_PushButton, &option, painter, widget);
     else if (type == RadioButton)
@@ -260,10 +263,10 @@ void QStyleFacadeImp::paintTextField(QPainter *painter, const QStyleFacadeOption
 {
     QWidget* widget = qobject_cast<QWidget*>(widgetForPainter(painter));
 
-    MappedStyleOption<QStyleOptionFrameV2> panel(widget, proxyOption);
+    MappedStyleOption<QStyleOptionFrame> panel(widget, proxyOption);
 
     panel.lineWidth = findFrameLineWidth();
-    panel.features = QStyleOptionFrameV2::None;
+    panel.features = QStyleOptionFrame::None;
 
     style()->drawPrimitive(QStyle::PE_PanelLineEdit, &panel, painter, widget);
 }
@@ -386,7 +389,7 @@ void QStyleFacadeImp::paintProgressBar(QPainter* painter, const QStyleFacadeOpti
 {
     QWidget* widget = qobject_cast<QWidget*>(widgetForPainter(painter));
 
-    MappedStyleOption<QStyleOptionProgressBarV2> option(widget, proxyOption);
+    MappedStyleOption<QStyleOptionProgressBar> option(widget, proxyOption);
 
     option.maximum = std::numeric_limits<int>::max();
     option.minimum = 0;

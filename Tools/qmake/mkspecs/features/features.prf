@@ -44,6 +44,7 @@ defineTest(detectFeatures) {
     config_libxslt: WEBKIT_CONFIG += xslt
     config_libzlib: WEBKIT_CONFIG += use_zlib
     config_libwebp: WEBKIT_CONFIG += use_webp
+    config_leveldb: WEBKIT_CONFIG += use_system_leveldb
 
     # We can't use Qt's 3rdparty sources for libjpeg and libpng outside of qtbase, but if Qt
     # is using the system libraries, use them to take advantage of the WebCore image decoders as well.
@@ -94,8 +95,8 @@ defineTest(detectFeatures) {
     # WebGL support - only enabled if we can use 3D graphics
     use?(3d_graphics): WEBKIT_CONFIG += webgl
 
-    # Enable CSS shaders when CSS filters and WebGL are enabled
-    enable?(css_filters):enable?(webgl): WEBKIT_CONFIG += css_shaders
+    # Both desktop and GLES2 support (only on Windows at this point)
+    contains(QT_CONFIG, dynamicgl): WEBKIT_CONFIG += have_dynamicgl
 
     # HTML5 Media Support for builds with GStreamer
     unix:!mac:!contains(QT_CONFIG, no-pkg-config) {
@@ -116,36 +117,35 @@ defineTest(detectFeatures) {
     }
 
     # Try to use an system wide SQlite installation
-    if(!contains(QT_CONFIG, no-pkg-config):packagesExist("sqlite3"))|mac {
+    if(!contains(QT_CONFIG, no-pkg-config):packagesExist("sqlite3"))|config_libsqlite3 {
         WEBKIT_CONFIG += have_sqlite3
     } else {
         SQLITE3SRCDIR = $$(SQLITE3SRCDIR)
         isEmpty(SQLITE3SRCDIR):isEmpty(_QMAKE_SUPER_CACHE_): error("WebKit requires SQLite. Either make it available via pkg-config, set $SQLITE3SRCDIR or build WebKit under qt5.git.")
     }
 
-    # Gamepad API Support (depends on udev)
-    linux: WEBKIT_CONFIG += gamepad
+    # Gamepad API Support (depends on udev and linux/joystick.h)
+    linux:!android: WEBKIT_CONFIG += gamepad
 
     # Support for Graphics Surface
     # GraphicsSurface requires GraphicsContext3D and hence use_3d_graphics
-    use?(3d_graphics) {
+    # FIXME: GraphicsSurface do not work with dynamicgl at this point.
+    use?(3d_graphics):!have?(dynamicgl) {
         mac: WEBKIT_CONFIG += use_graphics_surface
         win32:contains(QT_CONFIG, opengles2): WEBKIT_CONFIG += use_graphics_surface
         have?(glx):have?(xcomposite):have?(xrender): WEBKIT_CONFIG += use_graphics_surface use_glx
     }
 
-    # Slider Touch is sensible to use when compiling WebKit2
-    enable?(touch_events): WEBKIT_CONFIG += touch_slider
-
-
-
-    # ---------------- Sanitize features -------------------
+    # IndexedDB requires leveldb
+    enable?(indexed_database): WEBKIT_CONFIG += use_leveldb
 
     export(WEBKIT_CONFIG)
     export(CONFIGURE_WARNINGS)
 }
 
-defineTest(santizeFeatures) {
+# ---------------- Sanitize features -------------------
+
+defineTest(sanitizeFeatures) {
     # If we are doing a production_build we should only enable Geolocation support if QtPositioning exists. In developer builds we can use Mock implementations.
     production_build:!have?(qtpositioning): WEBKIT_CONFIG -= geolocation
 
@@ -170,8 +170,20 @@ defineTest(santizeFeatures) {
     # GStreamer uses Glib
     use?(gstreamer): WEBKIT_CONFIG += use_glib
 
-    # Minibrowser must be able to query for QtTestSupport
+    # LevelDB is not needed without indexed_database
+    !enable?(indexed_database): WEBKIT_CONFIG -= use_leveldb
+
+    # VideoTrack requires video
+    !enable?(video): WEBKIT_CONFIG -= video_track
+
+    # QtTestBrowser and MiniBrowser must be able to query for QtTestSupport
     build?(qttestsupport): WEBKIT_CONFIG += have_qttestsupport
+
+    # Accelerated 2D canvas uses 3D graphics support.
+    !use?(3d_graphics): WEBKIT_CONFIG -= accelerated_2d_canvas
+
+    # Touch slider requires touch events
+    !enable?(touch_events): WEBKIT_CONFIG -= touch_slider
 
     export(WEBKIT_CONFIG)
 }

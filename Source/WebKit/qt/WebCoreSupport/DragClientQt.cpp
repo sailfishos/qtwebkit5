@@ -90,17 +90,19 @@ void DragClientQt::willPerformDragSourceAction(DragSourceAction, const IntPoint&
 {
 }
 
-void DragClientQt::startDrag(DragImageRef dragImage, const IntPoint&, const IntPoint&, Clipboard* clipboard, Frame* frame, bool)
+void DragClientQt::startDrag(DragImageRef dragImage, const IntPoint& dragImageOrigin, const IntPoint& eventPos, Clipboard* clipboard, Frame* frame, bool)
 {
 #ifndef QT_NO_DRAGANDDROP
     QMimeData* clipboardData = clipboard->pasteboard().clipboardData();
     clipboard->pasteboard().invalidateWritableData();
-    QObject* view = m_chromeClient->platformPageClient()->ownerWidget();
+    PlatformPageClient pageClient = m_chromeClient->platformPageClient();
+    QObject* view = pageClient ? pageClient->ownerWidget() : 0;
     if (view) {
         QDrag* drag = new QDrag(view);
-        if (dragImage)
+        if (dragImage) {
             drag->setPixmap(*dragImage);
-        else if (clipboardData && clipboardData->hasImage())
+            drag->setHotSpot(IntPoint(eventPos - dragImageOrigin));
+        } else if (clipboardData && clipboardData->hasImage())
             drag->setPixmap(qvariant_cast<QPixmap>(clipboardData->imageData()));
         DragOperation dragOperationMask = clipboard->sourceOperation();
         drag->setMimeData(clipboardData);
