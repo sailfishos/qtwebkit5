@@ -142,12 +142,6 @@ This package contains the WebKit QML Experimental plugin for QtQml.
 %prep
 %setup -q -n %{name}-%{version}/qtwebkit
 
-# remove .../qt/tests directory which introduces nothing but trouble
-rm -rf Source/WebKit/qt/tests/
-
-# Avoid "Project ERROR: Missing CMake tests. Either create tests in tests/auto/cmake, or disable cmake config file creation with CONFIG-=create_cmake"
-mkdir -p tests/auto/cmake
-
 %build
 ## From Carsten Munk: create way smaller debuginfo
 #export CXXFLAGS="`echo $CXXFLAGS | sed 's/ -g / -gdwarf-4 /g'`"
