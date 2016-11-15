@@ -1809,6 +1809,30 @@ void QQuickWebViewExperimental::setUserScripts(const QList<QUrl>& userScripts)
     emit userScriptsChanged();
 }
 
+QUrl QQuickWebViewExperimental::userStyleSheet() const
+{
+    Q_D(const QQuickWebView);
+    QList<QUrl> userStyleSheets = d->userStyleSheets;
+    if (userStyleSheets.count() > 0) {
+        return userStyleSheets.at(0);
+    }
+    return QUrl();
+}
+
+void QQuickWebViewExperimental::setUserStyleSheet(const QUrl &userScript)
+{
+    Q_D(QQuickWebView);
+
+    qWarning("QQuickWebViewExperimental::setUserStyleSheet is deprecated. QQuickWebViewExperimental::setUserStyleSheets should be used instead.");
+    QList<QUrl> userStyleSheets;
+    userStyleSheets << userScript;
+
+    if (d->userStyleSheets == userStyleSheets)
+        return;
+    setUserStyleSheets(userStyleSheets);
+    emit userStyleSheetChanged();
+}
+
 QList<QUrl> QQuickWebViewExperimental::userStyleSheets() const
 {
     Q_D(const QQuickWebView);
