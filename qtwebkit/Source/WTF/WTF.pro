@@ -8,7 +8,7 @@ TARGET = WTF
 
 include(WTF.pri)
 
-CONFIG += staticlib
+CONFIG += staticlib optimize_full
 
 VPATH += $$PWD/wtf
 
@@ -264,11 +264,10 @@ win32 {
         threads/BinarySemaphore.cpp
 }
 
+use?(wchar_unicode): SOURCES += wtf/unicode/wchar/UnicodeWchar.cpp
+
 QT += core
 QT -= gui
-
-*-g++*:QMAKE_CXXFLAGS_RELEASE -= -O2
-*-g++*:QMAKE_CXXFLAGS_RELEASE += -O3
 
 *sh4* {
     QMAKE_CXXFLAGS += -mieee -w
@@ -279,4 +278,3 @@ QT -= gui
     # For GCC 4.5 and before we disable C++0x mode in JSC for if enabled in Qt's mkspec
     QMAKE_CXXFLAGS -= -std=c++0x -std=gnu++0x -std=c++11 -std=gnu++11
 }
-

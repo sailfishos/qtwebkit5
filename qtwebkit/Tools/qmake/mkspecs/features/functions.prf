@@ -196,7 +196,7 @@ defineTest(haveQt) {
 }
 
 defineTest(programExistsInPath) {
-    win32: program = $${1}.exe
+    equals(QMAKE_HOST.os, Windows): program = $${1}.exe
     else: program = $$1
 
     PATH = "$$(PATH)"
@@ -269,7 +269,8 @@ defineTest(linkAgainstLibrary) {
         mac {
             LIBS += -Wl,-force_load,$${path}$${QMAKE_DIR_SEP}lib$${target}.a
         } else:win32-msvc*|wince*|win32-icc {
-            LIBS += /OPT:REF -l$$target
+            LIBS += -l$$target
+            QMAKE_LFLAGS += /OPT:REF
         } else {
             CONFIG *= no_smart_library_merge
             LIBS += -Wl,-whole-archive -l$$target -Wl,-no-whole-archive
@@ -351,6 +352,10 @@ defineReplace(configDefines) {
             plugin_architecture: defines += $$upper($$config)=1
             next()
         }
+        equals(config, "use_system_malloc") {
+            use: defines += $$upper($$config)=1
+            next()
+        }
         match = $$find(config, "^use_")
         !isEmpty(match) {
             use: defines += WTF_$$upper($$config)=1
@@ -379,6 +384,14 @@ defineReplace(configDefines) {
 
 defineReplace(javascriptFeatureDefines) {
     defines = LANGUAGE_JAVASCRIPT=1 $$configDefines(enable)
+
+    # Omit disabled features when generating bindings to shrink the
+    # generator's command line on Windows.
+    disabledFeatures = $$find(defines, ^.+=0$)
+    for (disabledFeature, disabledFeatures) {
+        defines -= $$disabledFeature
+    }
+
     return($$defines)
 }
 

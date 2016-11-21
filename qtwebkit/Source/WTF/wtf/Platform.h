@@ -79,16 +79,23 @@
 #endif
 #endif
 
+/* CPU(MIPS64) - MIPS 64-bit */
+#if defined(__mips64)
+#define WTF_CPU_MIPS64 1
+#define WTF_MIPS_ARCH __mips64
 /* CPU(MIPS) - MIPS 32-bit */
 /* Note: Only O32 ABI is tested, so we enable it for O32 ABI for now.  */
-#if (defined(mips) || defined(__mips__) || defined(MIPS) || defined(_MIPS_)) \
+#elif (defined(mips) || defined(__mips__) || defined(MIPS) || defined(_MIPS_)) \
     && defined(_ABIO32)
 #define WTF_CPU_MIPS 1
+#define WTF_MIPS_ARCH __mips
+#endif
+
+#if CPU(MIPS) || CPU(MIPS64)
 #if defined(__MIPSEB__)
 #define WTF_CPU_BIG_ENDIAN 1
 #endif
 #define WTF_MIPS_PIC (defined __PIC__)
-#define WTF_MIPS_ARCH __mips
 #define WTF_MIPS_ISA(v) (defined WTF_MIPS_ARCH && WTF_MIPS_ARCH == v)
 #define WTF_MIPS_ISA_AT_LEAST(v) (defined WTF_MIPS_ARCH && WTF_MIPS_ARCH >= v)
 #define WTF_MIPS_ARCH_REV __mips_isa_rev
@@ -108,19 +115,26 @@
     || defined(_M_PPC)      \
     || defined(__PPC)
 #define WTF_CPU_PPC 1
+#ifndef __LITTLE_ENDIAN__
 #define WTF_CPU_BIG_ENDIAN 1
+#endif
 #endif
 
 /* CPU(PPC64) - PowerPC 64-bit */
 #if   defined(__ppc64__) \
     || defined(__PPC64__)
 #define WTF_CPU_PPC64 1
+#ifndef __LITTLE_ENDIAN__
 #define WTF_CPU_BIG_ENDIAN 1
+#endif
 #endif
 
 /* CPU(SH4) - SuperH SH-4 */
 #if defined(__SH4__)
 #define WTF_CPU_SH4 1
+#ifdef __BIG_ENDIAN__
+#define WTF_CPU_BIG_ENDIAN 1
+#endif
 #endif
 
 /* CPU(SPARC32) - SPARC 32-bit */
@@ -165,6 +179,11 @@
 #if   defined(__x86_64__) \
     || defined(_M_X64)
 #define WTF_CPU_X86_64 1
+
+#if defined(__ILP32__)
+#define WTF_CPU_X32 1
+#endif
+
 #endif
 
 /* CPU(ARM) - ARM, any version*/
@@ -276,14 +295,18 @@
 #define WTF_THUMB_ARCH_VERSION 0
 #endif
 
-
-/* CPU(ARMV5_OR_LOWER) - ARM instruction set v5 or earlier */
-/* On ARMv5 and below the natural alignment is required. 
-   And there are some other differences for v5 or earlier. */
-#if !defined(ARMV5_OR_LOWER) && !WTF_ARM_ARCH_AT_LEAST(6)
-#define WTF_CPU_ARMV5_OR_LOWER 1
+/* CPU(ARM_FEATURE_UNALIGNED) - ARM instruction set supports unaligned access */
+/* On ARMv5 and below the natural alignment is required. */
+#if !defined(WTF_CPU_ARM_FEATURE_UNALIGNED)
+#if COMPILER(GCC) && GCC_VERSION_AT_LEAST(4, 7, 0)
+/* Check for feature define in case we are building with -mno-unaligned-access or for ARMv6-M */
+#if defined(__ARM_FEATURE_UNALIGNED)
+#define WTF_CPU_ARM_FEATURE_UNALIGNED 1
 #endif
-
+#elif WTF_ARM_ARCH_AT_LEAST(6)
+#define WTF_CPU_ARM_FEATURE_UNALIGNED 1
+#endif
+#endif
 
 /* CPU(ARM_TRADITIONAL) - Thumb2 is not available, only traditional ARM (v4 or greater) */
 /* CPU(ARM_THUMB2) - Thumb2 instruction set is available */
@@ -322,7 +345,15 @@
 
 #endif /* ARM */
 
-#if CPU(ARM) || CPU(MIPS) || CPU(SH4) || CPU(SPARC)
+/* CPU(AARCH64) - AArch64 */
+#if defined(__aarch64__)
+#define WTF_CPU_AARCH64 1
+#if defined(__AARCH64EB__)
+#define WTF_CPU_BIG_ENDIAN 1
+#endif
+#endif
+
+#if CPU(ARM) || CPU(MIPS) || CPU(SH4) || CPU(SPARC) || CPU(MIPS64)
 #define WTF_CPU_NEEDS_ALIGNED_ACCESS 1
 #endif
 
@@ -545,6 +576,10 @@
 
 #endif  /* OS(WINCE) && !PLATFORM(QT) */
 
+#if OS(ANDROID) && PLATFORM(QT)
+# define WTF_USE_WCHAR_UNICODE 1
+#endif
+
 #if !USE(WCHAR_UNICODE)
 #define WTF_USE_ICU_UNICODE 1
 #endif
@@ -674,11 +709,6 @@
 #define HAVE_VIRTUALALLOC 1
 #endif
 
-#if OS(QNX)
-#define HAVE_MADV_FREE_REUSE 1
-#define HAVE_MADV_FREE 1
-#endif
-
 /* ENABLE macro defaults */
 
 /* FIXME: move out all ENABLE() defines from here to FeatureDefines.h */
@@ -720,11 +750,13 @@
 #endif
 
 #if !defined(WTF_USE_JSVALUE64) && !defined(WTF_USE_JSVALUE32_64)
-#if (CPU(X86_64) && (OS(UNIX) || OS(WINDOWS))) \
+#if (CPU(X86_64) && (OS(UNIX) || OS(WINDOWS)) && !CPU(X32)) \
     || (CPU(IA64) && !CPU(IA64_32)) \
     || CPU(ALPHA) \
     || CPU(SPARC64) \
     || CPU(S390X) \
+    || CPU(AARCH64) \
+    || CPU(MIPS64) \
     || CPU(PPC64)
 #define WTF_USE_JSVALUE64 1
 #else
@@ -734,6 +766,16 @@
 
 /* Disable the JIT on versions of GCC prior to 4.1 */
 #if !defined(ENABLE_JIT) && COMPILER(GCC) && !GCC_VERSION_AT_LEAST(4, 1, 0)
+#define ENABLE_JIT 0
+#endif
+
+/* All the current JIT implementations target little-endian */
+#if CPU(BIG_ENDIAN)
+#define ENABLE_JIT 0
+#endif
+
+/* Disable JIT on x32 */
+#if CPU(X32)
 #define ENABLE_JIT 0
 #endif
 
@@ -772,7 +814,7 @@
 #endif
 
 /* LLINT on ARM depends on an FPU */
-#if !defined(ENABLE_LLINT) && CPU(ARM) && !CPU(ARM_HARDFP)
+#if !defined(ENABLE_LLINT) && CPU(ARM) && (!CPU(ARM_VFP) || OS(ANDROID))
 #define ENABLE_LLINT 0
 #endif
 
@@ -872,7 +914,7 @@
 #define ENABLE_REGEXP_TRACING 0
 
 /* Yet Another Regex Runtime - turned on by default for JIT enabled ports. */
-#if !defined(ENABLE_YARR_JIT) && (ENABLE(JIT) || ENABLE(LLINT_C_LOOP)) && !(OS(QNX) && PLATFORM(QT))
+#if !defined(ENABLE_YARR_JIT) && !ENABLE(LLINT_C_LOOP) && !(OS(QNX) && PLATFORM(QT))
 #define ENABLE_YARR_JIT 1
 
 /* Setting this flag compares JIT results with interpreter results. */
@@ -893,7 +935,7 @@
 /* Pick which allocator to use; we only need an executable allocator if the assembler is compiled in.
    On x86-64 we use a single fixed mmap, on other platforms we mmap on demand. */
 #if ENABLE(ASSEMBLER)
-#if CPU(X86_64) && !OS(WINDOWS) || PLATFORM(IOS)
+#if CPU(X86_64) || PLATFORM(IOS) || CPU(MIPS)
 #define ENABLE_EXECUTABLE_ALLOCATOR_FIXED 1
 #else
 #define ENABLE_EXECUTABLE_ALLOCATOR_DEMAND 1

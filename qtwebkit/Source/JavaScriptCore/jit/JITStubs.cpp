@@ -340,7 +340,7 @@ asm volatile (
 ".globl " SYMBOL_STRING(ctiVMThrowTrampoline) "\n"
 HIDE_SYMBOL(ctiVMThrowTrampoline) "\n"
 SYMBOL_STRING(ctiVMThrowTrampoline) ":" "\n"
-    "mov.l .L2"SYMBOL_STRING(cti_vm_throw)",r0" "\n"
+    "mov.l .L2" SYMBOL_STRING(cti_vm_throw) ",r0" "\n"
     "mov r15, r4" "\n"
     "mov.l @(r0,r12),r11" "\n"
     "jsr @r11" "\n"
@@ -357,7 +357,7 @@ SYMBOL_STRING(ctiVMThrowTrampoline) ":" "\n"
     "rts" "\n"
     "nop" "\n"
     ".align 2" "\n"
-    ".L2"SYMBOL_STRING(cti_vm_throw)":.long " SYMBOL_STRING(cti_vm_throw)"@GOT \n"
+    ".L2" SYMBOL_STRING(cti_vm_throw) ":.long " SYMBOL_STRING(cti_vm_throw) "@GOT \n"
 );
 
 asm volatile (
@@ -653,7 +653,6 @@ SYMBOL_STRING(ctiTrampoline) ":" "\n"
     "str r11, [sp, #" STRINGIZE_VALUE_OF(PRESERVED_R11_OFFSET) "]" "\n"
     "str r1, [sp, #" STRINGIZE_VALUE_OF(REGISTER_FILE_OFFSET) "]" "\n"
     "mov r5, r2" "\n"
-    "mov r6, #512" "\n"
     "blx r0" "\n"
     "ldr r11, [sp, #" STRINGIZE_VALUE_OF(PRESERVED_R11_OFFSET) "]" "\n"
     "ldr r10, [sp, #" STRINGIZE_VALUE_OF(PRESERVED_R10_OFFSET) "]" "\n"
@@ -730,7 +729,6 @@ SYMBOL_STRING(ctiTrampoline) ":" "\n"
     "stmdb sp!, {r4-r6, r8-r11, lr}" "\n"
     "sub sp, sp, #" STRINGIZE_VALUE_OF(PRESERVEDR4_OFFSET) "\n"
     "mov r5, r2" "\n"
-    "mov r6, #512" "\n"
     // r0 contains the code
     "blx r0" "\n"
     "add sp, sp, #" STRINGIZE_VALUE_OF(PRESERVEDR4_OFFSET) "\n"
@@ -780,7 +778,6 @@ __asm EncodedJSValue ctiTrampoline(void*, JSStack*, CallFrame*, void* /*unused1*
     str r11, [sp, # PRESERVED_R11_OFFSET ]
     str r1, [sp, # REGISTER_FILE_OFFSET ]
     mov r5, r2
-    mov r6, #512
     blx r0
     ldr r11, [sp, # PRESERVED_R11_OFFSET ]
     ldr r10, [sp, # PRESERVED_R10_OFFSET ]
@@ -840,7 +837,6 @@ __asm EncodedJSValue ctiTrampoline(void*, JSStack*, CallFrame*, void* /*unused1*
     stmdb sp!, {r4-r6, r8-r11, lr}
     sub sp, sp, # PRESERVEDR4_OFFSET
     mov r5, r2
-    mov r6, #512
     mov lr, pc
     bx r0
     add sp, sp, # PRESERVEDR4_OFFSET
@@ -1387,7 +1383,6 @@ MSVC_BEGIN(    stmdb sp!, {r1-r3})
 MSVC_BEGIN(    stmdb sp!, {r4-r6, r8-r11, lr})
 MSVC_BEGIN(    sub sp, sp, #68 ; sync with PRESERVEDR4_OFFSET)
 MSVC_BEGIN(    mov r5, r2)
-MSVC_BEGIN(    mov r6, #512)
 MSVC_BEGIN(    ; r0 contains the code)
 MSVC_BEGIN(    mov lr, pc)
 MSVC_BEGIN(    bx r0)
@@ -1433,7 +1428,7 @@ MSVC_END(    END)
     SYMBOL_STRING(cti_##op) ":" "\n" \
     "sts pr, r11" "\n" \
     "mov.l r11, @(" STRINGIZE_VALUE_OF(THUNK_RETURN_ADDRESS_OFFSET) ", r15)" "\n" \
-    "mov.l .L2"SYMBOL_STRING(JITStubThunked_##op)",r0" "\n" \
+    "mov.l .L2" SYMBOL_STRING(JITStubThunked_##op) ",r0" "\n" \
     "mov.l @(r0,r12),r11" "\n" \
     "jsr @r11" "\n" \
     "nop" "\n" \
@@ -1442,7 +1437,7 @@ MSVC_END(    END)
     "rts" "\n" \
     "nop" "\n" \
     ".align 2" "\n" \
-    ".L2"SYMBOL_STRING(JITStubThunked_##op)":.long " SYMBOL_STRING(JITStubThunked_##op)"@GOT \n" \
+    ".L2" SYMBOL_STRING(JITStubThunked_##op) ":.long " SYMBOL_STRING(JITStubThunked_##op)"@GOT \n" \
     ); \
     rtype JITStubThunked_##op(STUB_ARGS_DECLARATION)
 #else

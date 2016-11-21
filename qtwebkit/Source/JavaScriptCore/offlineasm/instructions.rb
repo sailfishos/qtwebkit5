@@ -267,12 +267,12 @@ ARM_INSTRUCTIONS =
 
 MIPS_INSTRUCTIONS =
     [
+    "la",
     "movz",
     "movn",
     "slt",
     "sltu",
-    "pichdr",
-    "pichdrra"
+    "pichdr"
     ]
 
 SH4_INSTRUCTIONS =
@@ -285,9 +285,7 @@ SH4_INSTRUCTIONS =
     "loaddReversedAndIncrementAddress",
     "storedReversedAndDecrementAddress",
     "ldspr",
-    "stspr",
-    "callf",
-    "jmpf"
+    "stspr"
     ]
 
 CXX_INSTRUCTIONS =

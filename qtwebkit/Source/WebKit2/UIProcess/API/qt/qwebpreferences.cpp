@@ -81,6 +81,10 @@ bool QWebPreferencesPrivate::testAttribute(QWebPreferencesPrivate::WebAttribute 
         return WKPreferencesGetNotificationsEnabled(preferencesRef);
     case CookiesEnabled:
         return WKPreferencesGetCookieEnabled(preferencesRef);
+    case SpatialNavigationEnabled:
+        return WKPreferencesGetSpatialNavigationEnabled(preferencesRef);
+    case LinksIncludedInFocusChain:
+        return WKPreferencesGetTabsToLinks(preferencesRef);
     case UniversalAccessFromFileURLsAllowed:
         return WKPreferencesGetUniversalAccessFromFileURLsAllowed(preferencesRef);
     case FileAccessFromFileURLsAllowed:
@@ -150,6 +154,12 @@ void QWebPreferencesPrivate::setAttribute(QWebPreferencesPrivate::WebAttribute a
         break;
     case NotificationsEnabled:
         WKPreferencesSetNotificationsEnabled(preferencesRef, enable);
+        break;
+    case SpatialNavigationEnabled:
+        WKPreferencesSetSpatialNavigationEnabled(preferencesRef, enable);
+        break;
+    case LinksIncludedInFocusChain:
+        WKPreferencesSetTabsToLinks(preferencesRef, enable);
         break;
     case UniversalAccessFromFileURLsAllowed:
         WKPreferencesSetUniversalAccessFromFileURLsAllowed(preferencesRef, enable);
@@ -618,6 +628,32 @@ void QWebPreferences::setFileAccessFromFileURLsAllowed(bool enable)
         return;
     d->setAttribute(QWebPreferencesPrivate::FileAccessFromFileURLsAllowed, enable);
     emit fileAccessFromFileURLsAllowedChanged();
+}
+
+bool QWebPreferences::spatialNavigationEnabled() const
+{
+    return d->testAttribute(QWebPreferencesPrivate::SpatialNavigationEnabled);
+}
+
+void QWebPreferences::setSpatialNavigationEnabled(bool enable)
+{
+    if (spatialNavigationEnabled() == enable)
+        return;
+    d->setAttribute(QWebPreferencesPrivate::SpatialNavigationEnabled, enable);
+    emit spatialNavigationEnabledChanged();
+}
+
+bool QWebPreferences::linksIncludedInFocusChain() const
+{
+    return d->testAttribute(QWebPreferencesPrivate::LinksIncludedInFocusChain);
+}
+
+void QWebPreferences::setLinksIncludedInFocusChain(bool enable)
+{
+    if (linksIncludedInFocusChain() == enable)
+        return;
+    d->setAttribute(QWebPreferencesPrivate::LinksIncludedInFocusChain, enable);
+    emit linksIncludedInFocusChainChanged();
 }
 
 QWebPreferencesPrivate* QWebPreferencesPrivate::get(QWebPreferences* preferences)

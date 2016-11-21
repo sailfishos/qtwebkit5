@@ -80,7 +80,13 @@ linux-*:!android {
     LIBS += -lrt
 }
 
-have?(QTQUICK): QT += qml qml-private quick
+have?(QTQUICK): {
+    QT += qml qml-private quick
+    qtHaveModule(webchannel) {
+        QT += webchannel
+        DEFINES += HAVE_WEBCHANNEL
+    }
+}
 
 have?(qtpositioning):enable?(GEOLOCATION): QT += positioning
 

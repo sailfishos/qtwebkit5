@@ -56,6 +56,7 @@ class WebPageProxy;
 
 class QWebNavigationHistory;
 class QWebKitTest;
+class QWebChannelWebKitTransport;
 
 QT_BEGIN_NAMESPACE
 class QQmlComponent;
@@ -129,7 +130,7 @@ public:
     bool transparentBackground() const;
     void setNavigatorQtObjectEnabled(bool);
     void updateUserScripts();
-    void updateUserStyleSheet();
+    void updateUserStyleSheets();
     void updateSchemeDelegates();
 
     void setAutoCorrect(bool autoCorrect) { m_autoCorrect = autoCorrect; }
@@ -151,6 +152,9 @@ public:
     void handleDownloadRequest(WebKit::DownloadProxy*);
 
     void didReceiveMessageFromNavigatorQtObject(WKStringRef message);
+#ifdef HAVE_WEBCHANNEL
+    void didReceiveMessageFromNavigatorQtWebChannelTransportObject(WKStringRef message);
+#endif
 
     WebCore::CoordinatedGraphicsScene* coordinatedGraphicsScene();
     float deviceScaleFactor();
@@ -227,7 +231,7 @@ protected:
     QQmlComponent* headerComponent;
 
     QList<QUrl> userScripts;
-    QUrl userStyleSheet;
+    QList<QUrl> userStyleSheets;
 
     bool m_firstFrameRendered;
     bool m_betweenLoadCommitAndFirstFrame;

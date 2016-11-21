@@ -1122,7 +1122,6 @@ SOURCES += \
     platform/text/TextCodecUTF8.cpp \
     platform/text/TextCodecICU.cpp \
     platform/text/TextEncoding.cpp \
-    platform/text/TextEncodingDetectorICU.cpp \
     platform/text/TextEncodingRegistry.cpp \
     platform/text/TextStream.cpp \
     platform/ThreadGlobalData.cpp \
@@ -2879,6 +2878,7 @@ SOURCES += \
     platform/graphics/qt/GraphicsContextQt.cpp \
     platform/graphics/qt/IconQt.cpp \
     platform/graphics/qt/ImageBufferQt.cpp \
+    platform/graphics/qt/ImageBufferDataQt.cpp \
     platform/graphics/qt/ImageDecoderQt.cpp \
     platform/graphics/qt/ImageQt.cpp \
     platform/graphics/qt/IntPointQt.cpp \
@@ -2977,7 +2977,14 @@ mac {
         platform/text/cf/StringImplCF.cpp
 }
 
-contains(QT_CONFIG,icu)|mac: SOURCES += platform/text/TextBreakIteratorICU.cpp
+use?(wchar_unicode): {
+    SOURCES += platform/text/wchar/TextBreakIteratorWchar.cpp \
+               platform/text/TextEncodingDetectorNone.cpp
+} else {
+    SOURCES += platform/text/TextBreakIteratorICU.cpp \
+               platform/text/TextEncodingDetectorICU.cpp
+}
+
 mac {
     # For Mac we use the same SmartReplace implementation as the Apple port.
     SOURCES += editing/SmartReplaceCF.cpp
@@ -3068,6 +3075,7 @@ enable?(INDEXED_DATABASE) {
 
     HEADERS += \
         Modules/indexeddb/IDBAny.h \
+        Modules/indexeddb/IDBBackingStore.h \
         Modules/indexeddb/IDBCallbacks.h \
         Modules/indexeddb/IDBCursor.h \
         Modules/indexeddb/IDBCursorBackendImpl.h \
@@ -3084,24 +3092,38 @@ enable?(INDEXED_DATABASE) {
         Modules/indexeddb/IDBHistograms.h \
         Modules/indexeddb/IDBIndex.h \
         Modules/indexeddb/IDBKey.h \
+        Modules/indexeddb/IDBKeyPath.h \
         Modules/indexeddb/IDBKeyRange.h \
+        Modules/indexeddb/IDBLevelDBCoding.h \
         Modules/indexeddb/IDBObjectStore.h \
         Modules/indexeddb/IDBObjectStoreBackendImpl.h \
+        Modules/indexeddb/IDBOpenDBRequest.h \
         Modules/indexeddb/IDBRequest.h \
         Modules/indexeddb/IDBTransaction.h \
+        Modules/indexeddb/IDBTransactionBackendImpl.h \
+        Modules/indexeddb/IDBTransactionCoordinator.h \
+        Modules/indexeddb/IDBVersionChangeEvent.h \
         Modules/indexeddb/IndexedDB.h
 
     SOURCES += \
         bindings/js/IDBBindingUtilities.cpp \
-        bindings/js/JSIDBAnyCustom.cpp
+        bindings/js/JSIDBAnyCustom.cpp \
+        bindings/js/JSIDBDatabaseCustom.cpp \
+        bindings/js/JSIDBObjectStoreCustom.cpp
+
+    SOURCES += \
+        inspector/InspectorIndexedDBAgent.cpp
 
     SOURCES += \
         Modules/indexeddb/DOMWindowIndexedDatabase.cpp \
         Modules/indexeddb/IDBAny.cpp \
+        Modules/indexeddb/IDBBackingStore.cpp \
         Modules/indexeddb/IDBCursor.cpp \
         Modules/indexeddb/IDBCursorBackendImpl.cpp \
+        Modules/indexeddb/IDBCursorWithValue.cpp \
         Modules/indexeddb/IDBDatabase.cpp \
         Modules/indexeddb/IDBDatabaseBackendImpl.cpp \
+        Modules/indexeddb/IDBDatabaseCallbacksImpl.cpp \
         Modules/indexeddb/IDBDatabaseException.cpp \
         Modules/indexeddb/IDBEventDispatcher.cpp \
         Modules/indexeddb/IDBFactory.cpp \
@@ -3109,13 +3131,23 @@ enable?(INDEXED_DATABASE) {
         Modules/indexeddb/IDBFactoryBackendImpl.cpp \
         Modules/indexeddb/IDBIndex.cpp \
         Modules/indexeddb/IDBKey.cpp \
+        Modules/indexeddb/IDBKeyPath.cpp \
         Modules/indexeddb/IDBKeyRange.cpp \
+        Modules/indexeddb/IDBLevelDBCoding.cpp \
         Modules/indexeddb/IDBObjectStore.cpp \
         Modules/indexeddb/IDBObjectStoreBackendImpl.cpp \
+        Modules/indexeddb/IDBOpenDBRequest.cpp \
+        Modules/indexeddb/IDBPendingTransactionMonitor.cpp \
         Modules/indexeddb/IDBRequest.cpp \
         Modules/indexeddb/IDBTransaction.cpp \
+        Modules/indexeddb/IDBTransactionBackendImpl.cpp \
+        Modules/indexeddb/IDBTransactionCoordinator.cpp \
+        Modules/indexeddb/IDBVersionChangeEvent.cpp \
         Modules/indexeddb/PageGroupIndexedDatabase.cpp \
         Modules/indexeddb/WorkerGlobalScopeIndexedDatabase.cpp
+
+    use?(leveldb):!use?(system_leveldb): WEBKIT += leveldb
+
 }
 
 enable?(DATA_TRANSFER_ITEMS) {
@@ -4112,6 +4144,7 @@ use?(3D_GRAPHICS) {
         platform/graphics/gpu/Texture.h \
         platform/graphics/gpu/TilingData.h \
         platform/graphics/opengl/Extensions3DOpenGL.h \
+        platform/graphics/qt/QFramebufferPaintDevice.h \
         platform/graphics/texmap/TextureMapperGL.h \
         platform/graphics/texmap/TextureMapperShaderProgram.h \
         platform/graphics/texmap/coordinated/AreaAllocator.h \
@@ -4148,6 +4181,7 @@ use?(3D_GRAPHICS) {
         platform/graphics/opengl/GraphicsContext3DOpenGLCommon.cpp \
         platform/graphics/opengl/Extensions3DOpenGLCommon.cpp \
         platform/graphics/qt/GraphicsContext3DQt.cpp \
+        platform/graphics/qt/QFramebufferPaintDevice.cpp \
         platform/graphics/texmap/TextureMapperGL.cpp \
         platform/graphics/texmap/TextureMapperShaderProgram.cpp \
         platform/graphics/texmap/coordinated/AreaAllocator.cpp \
@@ -4162,15 +4196,15 @@ use?(3D_GRAPHICS) {
 
     INCLUDEPATH += $$PWD/platform/graphics/gpu
 
-    contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
-        !contains(QT_CONFIG, opengles2) {
-            SOURCES += \
-               platform/graphics/opengl/GraphicsContext3DOpenGL.cpp \
-               platform/graphics/opengl/Extensions3DOpenGL.cpp
-        } else {
+    contains(QT_CONFIG, opengl) {
+        contains(QT_CONFIG, opengles2) {
             SOURCES += \
                platform/graphics/opengl/GraphicsContext3DOpenGLES.cpp \
                platform/graphics/opengl/Extensions3DOpenGLES.cpp
+        } else {
+            SOURCES += \
+               platform/graphics/opengl/GraphicsContext3DOpenGL.cpp \
+               platform/graphics/opengl/Extensions3DOpenGL.cpp
         }
 
         HEADERS += platform/graphics/opengl/Extensions3DOpenGL.h
@@ -4182,7 +4216,6 @@ use?(3D_GRAPHICS) {
 
     WEBKIT += angle
 
-    CONFIG += opengl-shims
     INCLUDEPATH += platform/graphics/gpu
 }
 
@@ -4229,7 +4262,7 @@ use?(ZLIB) {
     SOURCES += $${SQLITE3SRCDIR}/sqlite3.c
 }
 
-win32:!win32-g++*:contains(QMAKE_HOST.arch, x86_64):{
+win32:!mingw:contains(QMAKE_HOST.arch, x86_64):{
     asm_compiler.commands = ml64 /c
     asm_compiler.commands +=  /Fo ${QMAKE_FILE_OUT} ${QMAKE_FILE_IN}
     asm_compiler.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_BASE}$${first(QMAKE_EXT_OBJ)}

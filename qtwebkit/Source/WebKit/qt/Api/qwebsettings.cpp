@@ -28,6 +28,7 @@
 #include "FileSystem.h"
 #include "FontCache.h"
 #include "GCController.h"
+#include "GroupSettings.h"
 #include "IconDatabase.h"
 #include "Image.h"
 #if ENABLE(ICONDATABASE)
@@ -67,8 +68,10 @@ QWEBKIT_EXPORT void qt_networkAccessAllowed(bool isAllowed)
 
 class QWebSettingsPrivate {
 public:
-    QWebSettingsPrivate(WebCore::Settings* wcSettings = 0)
-        : settings(wcSettings)
+    QWebSettingsPrivate(WebCore::Settings* wcSettings = 0, WebCore::GroupSettings* wcGroupSettings = 0)
+        : offlineStorageDefaultQuota(0)
+        , settings(wcSettings)
+        , groupSettings(wcGroupSettings)
     {
     }
 
@@ -79,11 +82,13 @@ public:
     QString defaultTextEncoding;
     QString localStoragePath;
     QString offlineWebApplicationCachePath;
+    QString offlineDatabasePath;
     QString mediaType;
     qint64 offlineStorageDefaultQuota;
     QWebSettings::ThirdPartyCookiePolicy thirdPartyCookiePolicy;
     void apply();
     WebCore::Settings* settings;
+    WebCore::GroupSettings* groupSettings;
 };
 
 Q_GLOBAL_STATIC(QList<QWebSettingsPrivate*>, allSettings);
@@ -144,13 +149,18 @@ void QWebSettingsPrivate::apply()
         settings->setDNSPrefetchingEnabled(value);
 
         value = attributes.value(QWebSettings::JavascriptEnabled,
-                                      global->attributes.value(QWebSettings::JavascriptEnabled));
+                                 global->attributes.value(QWebSettings::JavascriptEnabled));
         settings->setScriptEnabled(value);
 #if USE(ACCELERATED_COMPOSITING)
         value = attributes.value(QWebSettings::AcceleratedCompositingEnabled,
-                                      global->attributes.value(QWebSettings::AcceleratedCompositingEnabled));
-
+                                 global->attributes.value(QWebSettings::AcceleratedCompositingEnabled));
         settings->setAcceleratedCompositingEnabled(value);
+
+#if ENABLE(ACCELERATED_2D_CANVAS)
+        value = value && attributes.value(QWebSettings::Accelerated2dCanvasEnabled,
+                                          global->attributes.value(QWebSettings::Accelerated2dCanvasEnabled));
+        settings->setAccelerated2dCanvasEnabled(value);
+#endif
 
         bool showDebugVisuals = qgetenv("WEBKIT_SHOW_COMPOSITING_DEBUG_VISUALS") == "1";
         settings->setShowDebugBorders(showDebugVisuals);
@@ -237,10 +247,21 @@ void QWebSettingsPrivate::apply()
                                       global->attributes.value(QWebSettings::PrintElementBackgrounds));
         settings->setShouldPrintBackgrounds(value);
 
-#if ENABLE(SQL_DATABASE)
         value = attributes.value(QWebSettings::OfflineStorageDatabaseEnabled,
                                       global->attributes.value(QWebSettings::OfflineStorageDatabaseEnabled));
+#if ENABLE(SQL_DATABASE)
         WebCore::DatabaseManager::manager().setIsAvailable(value);
+#endif
+
+#if ENABLE(INDEXED_DATABASE)
+        QString path = !offlineDatabasePath.isEmpty() ? offlineDatabasePath : global->offlineDatabasePath;
+        Q_ASSERT(groupSettings);
+        // Setting the path to empty string disables persistent storage of the indexed database.
+        if (!value)
+            path = QString();
+        groupSettings->setIndexedDBDatabasePath(path);
+        qint64 quota = offlineStorageDefaultQuota ? offlineStorageDefaultQuota : global->offlineStorageDefaultQuota;
+        groupSettings->setIndexedDBQuotaBytes(quota);
 #endif
 
         value = attributes.value(QWebSettings::OfflineWebApplicationCacheEnabled,
@@ -251,9 +272,10 @@ void QWebSettingsPrivate::apply()
                                       global->attributes.value(QWebSettings::LocalStorageEnabled));
         settings->setLocalStorageEnabled(value);
 
-        value = attributes.value(QWebSettings::LocalContentCanAccessRemoteUrls,
+        bool remoteAccess = attributes.value(QWebSettings::LocalContentCanAccessRemoteUrls,
                                       global->attributes.value(QWebSettings::LocalContentCanAccessRemoteUrls));
-        settings->setAllowUniversalAccessFromFileURLs(value);
+        settings->setAllowUniversalAccessFromFileURLs(remoteAccess);
+        settings->setAllowRemoteAccessFromFileURLs(remoteAccess);
 
         value = attributes.value(QWebSettings::LocalContentCanAccessFileUrls,
                                       global->attributes.value(QWebSettings::LocalContentCanAccessFileUrls));
@@ -355,7 +377,7 @@ QWebSettings* QWebSettings::globalSettings()
     setOfflineStoragePath() with an appropriate file path, and can limit the quota
     for each application by calling setOfflineStorageDefaultQuota().
 
-    \sa QWebPage::settings(), QWebView::settings(), {Web Browser}
+    \sa QWebPage::settings(), QWebView::settings(), {Tab Browser}
 */
 
 /*!
@@ -433,7 +455,7 @@ QWebSettings* QWebSettings::globalSettings()
     \value PrivateBrowsingEnabled Private browsing prevents WebKit from
         recording visited pages in the history and storing web page icons. This is disabled by default.
     \value JavascriptCanOpenWindows Specifies whether JavaScript programs
-        can open new windows. This is disabled by default.
+        can open popup windows without user interaction. This is disabled by default.
     \value JavascriptCanCloseWindows Specifies whether JavaScript programs
         can close windows. This is disabled by default.
     \value JavascriptCanAccessClipboard Specifies whether JavaScript programs
@@ -497,10 +519,18 @@ QWebSettings* QWebSettings::globalSettings()
         enabled by default.
     \value CSSGridLayoutEnabled This setting enables support for the CSS 3 Grid Layout module. This
         CSS module is currently only a draft and support for it is disabled by default.
+    \value CSSRegionsEnabled This setting enables support for the CSS 3 Regions module. This
+        CSS module is currently only a draft and support for it is enabled by default.
     \value ScrollAnimatorEnabled This setting enables animated scrolling. It is disabled by default.
     \value CaretBrowsingEnabled This setting enables caret browsing. It is disabled by default.
     \value NotificationsEnabled Specifies whether support for the HTML 5 web notifications is enabled
         or not. This is enabled by default.
+    \value Accelerated2dCanvasEnabled Specifies whether the HTML5 2D canvas should be a OpenGL framebuffer.
+        This makes many painting operations faster, but slows down pixel access. This is disabled by default.
+    \value WebGLEnabled This setting enables support for WebGL.
+        It is enabled by default.
+    \value HyperlinkAuditingEnabled This setting enables support for hyperlink auditing (<a ping>).
+        It is disabled by default.
 */
 
 /*!
@@ -556,6 +586,7 @@ QWebSettings::QWebSettings()
     d->attributes.insert(QWebSettings::ScrollAnimatorEnabled, false);
     d->attributes.insert(QWebSettings::CaretBrowsingEnabled, false);
     d->attributes.insert(QWebSettings::NotificationsEnabled, true);
+    d->attributes.insert(QWebSettings::Accelerated2dCanvasEnabled, false);
     d->offlineStorageDefaultQuota = 5 * 1024 * 1024;
     d->defaultTextEncoding = QLatin1String("iso-8859-1");
     d->thirdPartyCookiePolicy = AlwaysAllowThirdPartyCookies;
@@ -564,10 +595,9 @@ QWebSettings::QWebSettings()
 /*!
     \internal
 */
-QWebSettings::QWebSettings(WebCore::Settings* settings)
-    : d(new QWebSettingsPrivate(settings))
+QWebSettings::QWebSettings(WebCore::Settings* settings, WebCore::GroupSettings* groupSettings)
+    : d(new QWebSettingsPrivate(settings, groupSettings))
 {
-    d->settings = settings;
     d->apply();
     allSettings()->append(d);
 }
@@ -1050,6 +1080,7 @@ void QWebSettings::resetAttribute(WebAttribute attr)
 void QWebSettings::setOfflineStoragePath(const QString& path)
 {
     WebCore::initializeWebCoreQt();
+    QWebSettings::globalSettings()->d->offlineDatabasePath = path;
 #if ENABLE(SQL_DATABASE)
     WebCore::DatabaseManager::manager().setDatabaseDirectoryPath(path);
 #endif
@@ -1066,11 +1097,7 @@ void QWebSettings::setOfflineStoragePath(const QString& path)
 QString QWebSettings::offlineStoragePath()
 {
     WebCore::initializeWebCoreQt();
-#if ENABLE(SQL_DATABASE)
-    return WebCore::DatabaseManager::manager().databaseDirectoryPath();
-#else
-    return QString();
-#endif
+    return QWebSettings::globalSettings()->d->offlineDatabasePath;
 }
 
 /*!
@@ -1184,7 +1211,7 @@ void QWebSettings::setLocalStoragePath(const QString& path)
     \since 4.6
 
     Returns the path for HTML5 local storage.
-    
+
     \sa setLocalStoragePath()
 */
 QString QWebSettings::localStoragePath() const

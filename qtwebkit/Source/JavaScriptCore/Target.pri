@@ -13,10 +13,7 @@ WEBKIT += wtf
 QT += core
 QT -= gui
 
-CONFIG += staticlib
-
-*-g++*:QMAKE_CXXFLAGS_RELEASE -= -O2
-*-g++*:QMAKE_CXXFLAGS_RELEASE += -O3
+CONFIG += staticlib optimize_full
 
 # Rules when JIT enabled (not disabled)
 !contains(DEFINES, ENABLE_JIT=0) {
@@ -341,7 +338,7 @@ linux-*:if(isEqual(QT_ARCH, "i386")|isEqual(QT_ARCH, "x86_64")) {
         disassembler/udis86/udis86_syn.c \
 }
 
-win32:!win32-g++*:isEqual(QT_ARCH, "x86_64"):{
+win32:!mingw:isEqual(QT_ARCH, "x86_64"):{
     asm_compiler.commands = ml64 /c
     asm_compiler.commands +=  /Fo ${QMAKE_FILE_OUT} ${QMAKE_FILE_IN}
     asm_compiler.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_BASE}$${first(QMAKE_EXT_OBJ)}
