@@ -321,6 +321,7 @@ QQuickWebViewPrivate::QQuickWebViewPrivate(QQuickWebView* viewport)
     , m_autoCorrect(false)
     , m_temporaryCookies(false)
     , m_loadProgress(0)
+    , m_pinching(false)
     , m_enableInputFieldAnimation(true)
     , m_enableResizeContent(true)
 {
