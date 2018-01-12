@@ -792,7 +792,7 @@ static void swizzleBGRAToRGBA(uint32_t* data, const IntRect& rect, int stride = 
 static bool driverSupportsExternalTextureBGRA(GraphicsContext3D* context)
 {
     if (context->isGLES2Compliant()) {
-        static bool supportsExternalTextureBGRA = context->getExtensions()->supports("GL_EXT_texture_format_BGRA8888");
+        static bool supportsExternalTextureBGRA = context->supportsBrgaTextures();
         return supportsExternalTextureBGRA;
     }
 
