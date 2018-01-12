@@ -87,7 +87,7 @@ void GraphicsContext3D::releaseShaderCompiler()
 void GraphicsContext3D::readPixelsAndConvertToBGRAIfNecessary(int x, int y, int width, int height, unsigned char* pixels)
 {
     ASSERT(m_private);
-    bool readBGRA = !isGLES2Compliant() || platformGraphicsContext3D()->hasExtension("GL_EXT_read_format_bgra");
+    bool readBGRA = supportsBrgaTextures() && (!isGLES2Compliant() || platformGraphicsContext3D()->hasExtension("GL_EXT_read_format_bgra"));
 
     if (readBGRA)
         m_functions->glReadPixels(x, y, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
