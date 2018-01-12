@@ -505,6 +505,8 @@ public:
 
     bool isGLES2Compliant() const;
 
+    bool supportsBrgaTextures();
+
     //----------------------------------------------------------------------
     // Helpers for texture uploading and pixel readback.
     //

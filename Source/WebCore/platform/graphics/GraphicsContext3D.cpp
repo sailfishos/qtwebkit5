@@ -1491,6 +1491,18 @@ PlatformLayer* GraphicsContext3D::platformLayer() const
 #endif
 #endif
 
+static bool checkNoBgra()
+{
+    const char *value = getenv("QT_OPENGL_NO_BGRA");
+    return value && *value != '\0' && *value != '0';
+}
+
+bool GraphicsContext3D::supportsBrgaTextures()
+{
+    static const bool noBgra = checkNoBgra();
+    return !noBgra && getExtensions()->supports("GL_EXT_texture_format_BGRA8888");
+}
+
 } // namespace WebCore
 
 #endif // USE(3D_GRAPHICS)
