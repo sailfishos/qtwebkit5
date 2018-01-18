@@ -180,7 +180,7 @@ qmake -qt=5 CONFIG+=release CONFIG-=debug \
        WEBKIT_CONFIG-=netscape_plugin_api \
        WEBKIT_CONFIG-=build_qttestsupport
 
-make %{?jobs:-j%jobs}
+make %{?_smp_mflags}
 
 %install
 rm -rf %{buildroot}
