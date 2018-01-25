@@ -37,6 +37,7 @@ BuildRequires:  pkgconfig(libpng)
 BuildRequires:  pkgconfig(libxml-2.0)
 BuildRequires:  pkgconfig(libudev)
 BuildRequires:  pkgconfig(libxslt)
+BuildRequires:  pkgconfig(libwebp)
 BuildRequires:  gperf
 BuildRequires:  python
 BuildRequires:  bison
