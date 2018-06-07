@@ -18,7 +18,6 @@ BuildRequires:  pkgconfig(Qt5PrintSupport)
 BuildRequires:  pkgconfig(Qt5Script)
 BuildRequires:  pkgconfig(Qt5Qml)
 BuildRequires:  pkgconfig(Qt5Quick)
-BuildRequires:  pkgconfig(Qt53D)
 #BuildRequires:  qt5-qtsensors-devel
 BuildRequires:  pkgconfig(Qt5XmlPatterns)
 BuildRequires:  qt5-qmake
@@ -141,7 +140,7 @@ This package contains the WebKit QML Experimental plugin for QtQml.
 
 
 %prep
-%setup -q -n %{name}-%{version}/qtwebkit
+%setup -q -n %{name}-%{version}
 
 %build
 ## From Carsten Munk: create way smaller debuginfo
