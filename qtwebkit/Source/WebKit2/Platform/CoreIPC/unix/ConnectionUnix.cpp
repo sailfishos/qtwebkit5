@@ -134,26 +134,26 @@ void Connection::platformInitialize(Identifier identifier)
 
 void Connection::platformInvalidate()
 {
-    // In GTK+ platform the socket is closed by the work queue.
-#if !PLATFORM(GTK)
-    if (m_socketDescriptor != -1)
-        closeWithRetry(m_socketDescriptor);
-#endif
-
-    if (!m_isConnected)
-        return;
-
+    if (m_isConnected) {
 #if PLATFORM(GTK)
-    m_connectionQueue->unregisterSocketEventHandler(m_socketDescriptor);
+        m_connectionQueue->unregisterSocketEventHandler(m_socketDescriptor);
 #endif
 
 #if PLATFORM(QT)
-    delete m_socketNotifier;
-    m_socketNotifier = 0;
+        delete m_socketNotifier;
+        m_socketNotifier = 0;
 #endif
 
 #if PLATFORM(EFL)
-    m_connectionQueue->unregisterSocketEventHandler(m_socketDescriptor);
+        m_connectionQueue->unregisterSocketEventHandler(m_socketDescriptor);
+#endif
+    }
+
+#if PLATFORM(GTK)
+    // In GTK+ platform the socket is closed by the work queue.
+#else
+    if (m_socketDescriptor != -1)
+        closeWithRetry(m_socketDescriptor);
 #endif
 
     m_socketDescriptor = -1;
