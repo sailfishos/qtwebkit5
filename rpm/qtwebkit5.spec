@@ -1,16 +1,14 @@
-# Conditional building of X11 related things
-%bcond_with X11
-
 Name:       qt5-qtwebkit
 Summary:    Web content engine library for Qt
 Version:    5.6.2
-Release:    1%{?dist}
+Release:    1
 Group:      Qt/Qt
 License:    BSD and LGPLv2+
 URL:        https://qt.gitorious.org/qt/qtwebkit/commit/5e64d7e
 Source0:    %{name}-%{version}.tar.bz2
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5Gui)
+BuildRequires:  pkgconfig(Qt5OpenGL)
 BuildRequires:  pkgconfig(Qt5Network)
 BuildRequires:  pkgconfig(Qt5Widgets)
 BuildRequires:  pkgconfig(Qt5PrintSupport)
@@ -18,17 +16,12 @@ BuildRequires:  pkgconfig(Qt5PrintSupport)
 BuildRequires:  pkgconfig(Qt5Script)
 BuildRequires:  pkgconfig(Qt5Qml)
 BuildRequires:  pkgconfig(Qt5Quick)
-BuildRequires:  pkgconfig(Qt53D)
 #BuildRequires:  qt5-qtsensors-devel
 BuildRequires:  pkgconfig(Qt5XmlPatterns)
 BuildRequires:  qt5-qmake
 BuildRequires:  pkgconfig(Qt5Sql)
 BuildRequires:  pkgconfig(icu-uc)
 BuildRequires:  pkgconfig(sqlite3)
-%if %{with X11}
-BuildRequires:  pkgconfig(xext)
-BuildRequires:  pkgconfig(xrender)
-%endif
 # FIXME, it needs checking if other glib modules are used, those need
 #        to be added separately!
 BuildRequires:  pkgconfig(glib-2.0)
