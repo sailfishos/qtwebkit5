@@ -181,8 +181,8 @@ rm -rf %{buildroot}
 
 %qmake5_install
 # Remove .la files
-rm -f %{buildroot}/usr/lib/libQt5WebKit.la
-rm -f %{buildroot}/usr/lib/libQt5WebKitWidgets.la
+rm -f %{buildroot}%{_libdir}/libQt5WebKit.la
+rm -f %{buildroot}%{_libdir}/libQt5WebKitWidgets.la
 # Fix wrong path in pkgconfig files
 find %{buildroot}%{_libdir}/pkgconfig -type f -name '*.pc' \
 -exec perl -pi -e "s, -L%{_builddir}/?\S+,,g" {} \;
