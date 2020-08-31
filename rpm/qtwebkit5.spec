@@ -37,6 +37,7 @@ BuildRequires:  bison
 BuildRequires:  flex
 BuildRequires:  fdupes
 BuildRequires:  ruby
+BuildRequires:  rubygems
 BuildRequires:  perl
 BuildRequires:  perl-version
 BuildRequires:  perl-libs
