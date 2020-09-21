@@ -2,9 +2,8 @@ Name:       qt5-qtwebkit
 Summary:    Web content engine library for Qt
 Version:    5.6.2
 Release:    1
-Group:      Qt/Qt
 License:    BSD and LGPLv2+
-URL:        https://qt.gitorious.org/qt/qtwebkit/commit/5e64d7e
+URL:        https://www.qt.io/
 Source0:    %{name}-%{version}.tar.bz2
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5Gui)
@@ -32,7 +31,7 @@ BuildRequires:  pkgconfig(libudev)
 BuildRequires:  pkgconfig(libxslt)
 BuildRequires:  pkgconfig(libwebp)
 BuildRequires:  gperf
-BuildRequires:  python
+BuildRequires:  python3-base
 BuildRequires:  bison
 BuildRequires:  flex
 BuildRequires:  fdupes
@@ -49,7 +48,6 @@ the World Wide Web into your Qt application.
 
 %package uiprocess-launcher
 Summary:    Web content engine library for Qt - WebKit2 process launcher
-Group:      Qt/Qt
 
 %description uiprocess-launcher
 QtWebKit provides a Web browser engine that makes it easy to embed content from
@@ -60,7 +58,6 @@ This package contains the UI process launcher for WebKit2 engine
 
 %package -n libqtwebkit5
 Summary:    Web content engine library for Qt - core runtime files
-Group:      Qt/Qt
 Requires:   %{name}-uiprocess-launcher = %{version}
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
@@ -75,7 +72,6 @@ using QtWebKit library.
 
 %package -n libqtwebkit5-devel
 Summary:    Web content engine library for Qt - core development files
-Group:      Qt/Qt
 Requires:   libqtwebkit5 = %{version}
 
 %description -n libqtwebkit5-devel
@@ -88,7 +84,6 @@ using QtWebKit library.
 
 %package -n libqtwebkit5-widgets
 Summary:    Web content engine library for Qt - GUI runtime files
-Group:      Qt/Qt
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
@@ -102,7 +97,6 @@ using QtWebKitWidgets library.
 
 %package -n libqtwebkit5-widgets-devel
 Summary:    Web content engine library for Qt - GUI development files
-Group:      Qt/Qt
 Requires:   libqtwebkit5-widgets = %{version}
 
 %description -n libqtwebkit5-widgets-devel
@@ -115,7 +109,6 @@ using QtWebKitWidgets library.
 
 %package -n qt5-qtqml-import-webkitplugin
 Summary:    Qt WebKit QML plugin
-Group:      Qt/Qt
 
 %description -n qt5-qtqml-import-webkitplugin
 QtWebKit provides a Web browser engine that makes it easy to embed content from
@@ -125,7 +118,6 @@ This package contains the WebKit QML plugin for QtQml.
 
 %package -n qt5-qtqml-import-webkitplugin-experimental
 Summary:    Qt WebKit Experimental QML plugin
-Group:      Qt/Qt
 
 %description -n qt5-qtqml-import-webkitplugin-experimental
 QtWebKit provides a Web browser engine that makes it easy to embed content from
@@ -135,7 +127,7 @@ This package contains the WebKit QML Experimental plugin for QtQml.
 
 
 %prep
-%setup -q -n %{name}-%{version}/qtwebkit
+%autosetup -n %{name}-%{version}/qtwebkit
 
 %build
 ## From Carsten Munk: create way smaller debuginfo
@@ -175,10 +167,9 @@ qmake -qt=5 CONFIG+=release CONFIG-=debug \
        WEBKIT_CONFIG-=netscape_plugin_api \
        WEBKIT_CONFIG-=build_qttestsupport
 
-make %{?_smp_mflags}
+%make_build
 
 %install
-rm -rf %{buildroot}
 
 %qmake5_install
 # Remove .la files

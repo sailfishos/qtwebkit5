@@ -37,7 +37,7 @@ shared:contains(TEMPLATE, lib) {
     suffix =
     CONFIG(debug, debug|release): suffix = d
     forwarded_exports.target = forwarded-exports$${suffix}.cpp
-    forwarded_exports.commands = python $${ROOT_WEBKIT_DIR}$${QMAKE_DIR_SEP}Tools$${QMAKE_DIR_SEP}Scripts$${QMAKE_DIR_SEP}generate-win32-export-forwards $$LIBSWITHEXPORTS $$forwarded_exports.target
+    forwarded_exports.commands = python3 $${ROOT_WEBKIT_DIR}$${QMAKE_DIR_SEP}Tools$${QMAKE_DIR_SEP}Scripts$${QMAKE_DIR_SEP}generate-win32-export-forwards $$LIBSWITHEXPORTS $$forwarded_exports.target
     forwarded_exports.depends = $$LIBSWITHEXPORTS
     QMAKE_EXTRA_TARGETS += forwarded_exports
     GENERATED_SOURCES += $$forwarded_exports.target
