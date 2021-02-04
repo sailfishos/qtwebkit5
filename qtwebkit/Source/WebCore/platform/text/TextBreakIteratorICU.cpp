@@ -214,12 +214,12 @@ static inline bool textInChunkOrOutOfRange(UText* text, int64_t nativeIndex, int
             // Ensure chunk offset is well formed if computed offset exceeds int32_t range.
             ASSERT(offset < numeric_limits<int32_t>::max());
             text->chunkOffset = offset < numeric_limits<int32_t>::max() ? static_cast<int32_t>(offset) : 0;
-            isAccessible = TRUE;
+            isAccessible = true;
             return true;
         }
         if (nativeIndex >= nativeLength && text->chunkNativeLimit == nativeLength) {
             text->chunkOffset = text->chunkLength;
-            isAccessible = FALSE;
+            isAccessible = false;
             return true;
         }
     } else {
@@ -228,12 +228,12 @@ static inline bool textInChunkOrOutOfRange(UText* text, int64_t nativeIndex, int
             // Ensure chunk offset is well formed if computed offset exceeds int32_t range.
             ASSERT(offset < numeric_limits<int32_t>::max());
             text->chunkOffset = offset < numeric_limits<int32_t>::max() ? static_cast<int32_t>(offset) : 0;
-            isAccessible = TRUE;
+            isAccessible = true;
             return true;
         }
         if (nativeIndex <= 0 && !text->chunkNativeStart) {
             text->chunkOffset = 0;
-            isAccessible = FALSE;
+            isAccessible = false;
             return true;
         }
     }
@@ -243,7 +243,7 @@ static inline bool textInChunkOrOutOfRange(UText* text, int64_t nativeIndex, int
 static UBool textLatin1Access(UText* text, int64_t nativeIndex, UBool forward)
 {
     if (!text->context)
-        return FALSE;
+        return false;
     int64_t nativeLength = textNativeLength(text);
     UBool isAccessible;
     if (textInChunkOrOutOfRange(text, nativeIndex, nativeLength, forward, isAccessible))
@@ -263,7 +263,7 @@ static UBool textLatin1Access(UText* text, int64_t nativeIndex, UBool forward)
         ASSERT(newContext == PriorContext);
         textLatin1SwitchToPriorContext(text, nativeIndex, nativeLength, forward);
     }
-    return TRUE;
+    return true;
 }
 
 static const struct UTextFuncs textLatin1Funcs = {
@@ -364,7 +364,7 @@ static void textUTF16SwitchToPriorContext(UText* text, int64_t nativeIndex, int6
 static UBool textUTF16Access(UText* text, int64_t nativeIndex, UBool forward)
 {
     if (!text->context)
-        return FALSE;
+        return false;
     int64_t nativeLength = textNativeLength(text);
     UBool isAccessible;
     if (textInChunkOrOutOfRange(text, nativeIndex, nativeLength, forward, isAccessible))
@@ -384,7 +384,7 @@ static UBool textUTF16Access(UText* text, int64_t nativeIndex, UBool forward)
         ASSERT(newContext == PriorContext);
         textUTF16SwitchToPriorContext(text, nativeIndex, nativeLength, forward);
     }
-    return TRUE;
+    return true;
 }
 
 static const struct UTextFuncs textUTF16Funcs = {
