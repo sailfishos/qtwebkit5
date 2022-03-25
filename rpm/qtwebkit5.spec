@@ -138,13 +138,6 @@ This package contains the WebKit QML Experimental plugin for QtQml.
 %setup -q -n %{name}-%{version}/qtwebkit
 
 %build
-## From Carsten Munk: create way smaller debuginfo
-#export CXXFLAGS="`echo $CXXFLAGS | sed 's/ -g / -gdwarf-4 /g'`"
-#export CFLAGS="`echo $CFLAGS | sed 's/ -g / -gdwarf-4 /g'`"
-# XXX: Remove debug symbols entirely, we're running out of linker memory!
-export CXXFLAGS="`echo $CXXFLAGS | sed 's/ -g / /g'`"
-export CFLAGS="`echo $CFLAGS | sed 's/ -g / /g'`"
-#
 export QMAKEPATH="`pwd`/Tools/qmake"
 export QTDIR=/usr/share/qt5
 #
@@ -153,12 +146,14 @@ touch .git
 # Configure to release build, drop tests, mimic Tools/qmake/mkspecs/features/production_build.prf for the whole
 # build not just WebCore. We could also drop WebKit1 support aka libqtwebkit5-widgets with WEBKIT_CONFIG-=build_webkit1.
 # See also Tools/qmake/mkspecs/features/features.prf.
+# Replace -g with -g1 in CXXFLAGS to reduce the size of debuginfo and allow stripping; see JB#57198
 qmake -qt=5 CONFIG+=release CONFIG-=debug \
        WEBKIT_CONFIG-=build_tests \
-       CONFIG+=no_debug_info \
        CONFIG-=separate_debug_info \
        QMAKE_CFLAGS+=$QMAKE_CFLAGS_RELEASE \
        QMAKE_CXXFLAGS+=$QMAKE_CXXFLAGS_RELEASE \
+       QMAKE_CXXFLAGS-="-g" \
+       QMAKE_CXXFLAGS+="-g1" \
        CONFIG-=create_cmake \
        CONFIG*=use_all_in_one_files \
        WEBKIT_CONFIG-=ftpdir \
