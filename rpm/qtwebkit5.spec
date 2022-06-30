@@ -4,7 +4,7 @@ Version:    5.6.2
 Release:    1
 Group:      Qt/Qt
 License:    BSD and LGPLv2+
-URL:        https://qt.gitorious.org/qt/qtwebkit/commit/5e64d7e
+URL:        https://github.com/sailfishos/qtwebkit5
 Source0:    %{name}-%{version}.tar.bz2
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5Gui)
