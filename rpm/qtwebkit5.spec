@@ -109,6 +109,7 @@ using QtWebKitWidgets library.
 
 %package -n qt5-qtqml-import-webkitplugin
 Summary:    Qt WebKit QML plugin
+Requires:   sailfishsilica-qt5-webview
 
 %description -n qt5-qtqml-import-webkitplugin
 QtWebKit provides a Web browser engine that makes it easy to embed content from
