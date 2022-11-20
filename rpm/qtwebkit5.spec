@@ -148,6 +148,7 @@ qmake -qt=5 CONFIG+=release CONFIG-=debug \
        QMAKE_CXXFLAGS-="-g" \
        QMAKE_CXXFLAGS+="-g1" \
        QMAKE_CXXFLAGS+="-Wno-expansion-to-defined" \
+       QMAKE_CXXFLAGS+="-Wno-class-memaccess" \
        CONFIG-=create_cmake \
        CONFIG*=use_all_in_one_files \
        WEBKIT_CONFIG-=ftpdir \
